@@ -21,18 +21,66 @@ router.get('/', async (req, res) => {
 // Create a new todo
 router.post('/', async (req, res) => {
     try {
+        const { title, description } = req.body;
+        
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
+
         const todo = new Todo({
-            title: req.body.title,
-            description: req.body.description,
-            user: req.userId
+            title,
+            description,
+            user: req.userId,
+            completed: false
         });
-        await todo.save();
-        res.status(201).json(todo);
+
+        const savedTodo = await todo.save();
+        res.status(201).json(savedTodo);
     } catch (error) {
-        res.status(500).json({
-            msg: "Error creating Todo !"
-        })
+        res.status(500).json({ error: 'Error creating todo' });
     }
-})
+});
+
+// Update todo
+router.put('/:id', async (req, res) => {
+    try {
+        const { title, description, completed } = req.body;
+        const todoId = req.params.id;
+
+        const todo = await Todo.findOne({ _id: todoId, user: req.userId });
+        
+        if (!todo) {
+            return res.status(404).json({ error: 'Todo not found' });
+        }
+
+        if (title) todo.title = title;
+        if (description !== undefined) todo.description = description;
+        if (completed !== undefined) todo.completed = completed;
+
+        const updatedTodo = await todo.save();
+        res.json(updatedTodo);
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating todo' });
+    }
+});
+
+// Delete todo
+router.delete('/:id', async (req, res) => {
+    try {
+        const todoId = req.params.id;
+        const todo = await Todo.findOneAndDelete({ 
+            _id: todoId, 
+            user: req.userId  // Fixed to match schema and middleware
+        });
+
+        if (!todo) {
+            return res.status(404).json({ error: 'Todo not found' });
+        }
+
+        res.json({ message: 'Todo deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error deleting todo' });
+    }
+});
 
 export default router;

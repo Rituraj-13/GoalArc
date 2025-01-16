@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
-const AuthForm = () => {
+
+// Add setIsAuthenticated prop
+const AuthForm = ({ setIsAuthenticated }) => {
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -26,6 +28,7 @@ const AuthForm = () => {
             if (response.data.token) {
                 // Store token in the local storage
                 localStorage.setItem('todoToken', response.data.token);
+                setIsAuthenticated(true);
                 toast.success(response.data.msg);
             } else if (response.data.userCheck === "true") {
                 toast.error(response.data.msg);
@@ -107,4 +110,3 @@ const AuthForm = () => {
 };
 
 export default AuthForm;
-
