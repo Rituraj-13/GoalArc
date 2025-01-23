@@ -7,7 +7,6 @@ import TodoInterface from './components/TodoInterface'
 import axios from 'axios';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
-import Footer from './components/Footer.jsx'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -58,12 +57,12 @@ export default function App() {
             <div>
               <button
                 onClick={handleLogout}
-                className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+                className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg transition-all duration-300 ease-in-out transform hover:bg-red-600 hover:scale-105"
               >
                 Logout
               </button>
+
               <TodoInterface />
-              {/* <Footer /> */}
             </div>
           ) : (
             <Navigate to="/auth" />

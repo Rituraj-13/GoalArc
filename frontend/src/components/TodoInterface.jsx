@@ -11,10 +11,17 @@ const TodoInterface = () => {
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState('');
     const [editDesc, setEditDesc] = useState('');
+    const [quote, setQuote] = useState("");
 
     // Fetch todos on component mount
     useEffect(() => {
         fetchTodos();
+        // getQuote();
+        const fetchQuote = async () => {
+            const newQuote = await getQuote();
+            setQuote(newQuote);
+        };
+        fetchQuote();
     }, []);
 
     const fetchTodos = async () => {
@@ -122,119 +129,162 @@ const TodoInterface = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4">
-            <Toaster position="bottom-right" />
-            <div className="max-w-3xl mx-auto">
-                <h2 className="text-4xl font-bold mb-12 text-gray-800 text-center">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                        My Tasks
-                    </span>
-                </h2>
+    const fallbackQuotes = [
+        "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        "The only way to do great work is to love what you do.",
+        "Stay focused and never give up.",
+        "Make each day your masterpiece."
+    ];
 
-                <form onSubmit={handleAddTodo} className="mb-12 bg-white p-6 rounded-xl shadow-lg">
-                    <div className="flex flex-col gap-4">
-                        <input
-                            type="text"
-                            value={newTodo}
-                            onChange={(e) => setNewTodo(e.target.value)}
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            placeholder="What needs to be done?"
-                        />
-                        <textarea
-                            value={newDesc}
-                            onChange={(e) => setNewDesc(e.target.value)}
-                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-                            placeholder="Add details..."
-                            rows="3"
-                        />
-                        <button
-                            type="submit"
-                            className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] font-semibold shadow-md"
-                        >
-                            Add Task
-                        </button>
-                    </div>
-                </form>
-                {loading ? (
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    </div>
-                ) : (
-                    <ul className="space-y-4">
-                        {todos.map((todo) => (
-                            <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
-                                {editingId === todo._id ? (
-                                    <div className="p-4">
-                                        <input
-                                            type="text"
-                                            value={editTitle}
-                                            onChange={(e) => setEditTitle(e.target.value)}
-                                            className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                        <textarea
-                                            value={editDesc}
-                                            onChange={(e) => setEditDesc(e.target.value)}
-                                            className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                            rows="2"
-                                        />
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleUpdateTodo(todo._id)}
-                                                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                            >
-                                                Save
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingId(null)}
-                                                className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-4">
-                                        <div className="flex items-center gap-4">
+    const getQuote = async () => {
+        try {
+            const quoteOfTheDay = await fetch("/api/random")
+                .then(response => response.json())
+
+            const refined_Quote = quoteOfTheDay[0].q;
+            
+            if (refined_Quote.startsWith("Too")) {
+                // Get random fallback quote when API limit is reached
+                const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+                setQuote(fallbackQuotes[randomIndex]);
+                // Optionally show a toast/notification about API limit
+                console.log("API rate limit reached, showing fallback quote");
+                return fallbackQuotes[randomIndex];
+            } else if (!refined_Quote || refined_Quote.trim() === "") {
+                // Handle empty or null responses
+                setQuote("Stay productive!");
+                return "Stay productive!";
+            } else {
+                return refined_Quote;
+            }
+
+        } catch (error) {
+            console.error('Error fetching quote:', error);
+        }
+    }
+
+    return (
+        <>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 pb-16">
+                <Toaster position="bottom-right" />
+                <div className="max-w-3xl mx-auto">
+                    <h2 className="text-4xl font-bold mb-12 text-gray-800 text-center">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                            My Tasks
+                        </span>
+                    </h2>
+
+                    <form onSubmit={handleAddTodo} className="mb-12 bg-white p-6 rounded-xl shadow-lg">
+                        <div className="flex flex-col gap-4">
+                            <input
+                                type="text"
+                                value={newTodo}
+                                onChange={(e) => setNewTodo(e.target.value)}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                placeholder="What needs to be done?"
+                            />
+                            <textarea
+                                value={newDesc}
+                                onChange={(e) => setNewDesc(e.target.value)}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                                placeholder="Add details..."
+                                rows="3"
+                            />
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] font-semibold shadow-md"
+                            >
+                                Add Task
+                            </button>
+                        </div>
+                    </form>
+                    {loading ? (
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                        </div>
+                    ) : (
+                        <ul className="space-y-4">
+                            {todos.map((todo) => (
+                                <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+                                    {editingId === todo._id ? (
+                                        <div className="p-4">
                                             <input
-                                                type="checkbox"
-                                                checked={todo.completed}
-                                                onChange={() => handleToggleTodo(todo._id, todo.completed)}
-                                                className="h-5 w-5 rounded border-gray-300 cursor-pointer focus:ring-2 focus:ring-blue-500"
+                                                type="text"
+                                                value={editTitle}
+                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
-                                            <span className={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                                {todo.title}
-                                            </span>
+                                            <textarea
+                                                value={editDesc}
+                                                onChange={(e) => setEditDesc(e.target.value)}
+                                                className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                rows="2"
+                                            />
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => handleEdit(todo)}
-                                                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md font-medium flex items-center gap-2"
+                                                    onClick={() => handleUpdateTodo(todo._id)}
+                                                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
                                                 >
-                                                    <span>Edit</span>
-                                                    <Pencil size={16} />
+                                                    Save
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteTodo(todo._id)}
-                                                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-md font-medium flex items-center gap-2"
+                                                    onClick={() => setEditingId(null)}
+                                                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md font-medium flex items-center gap-1"
                                                 >
-                                                    <span>Delete</span>
-                                                    <Trash size={16} />
+                                                    Cancel
                                                 </button>
                                             </div>
                                         </div>
-                                        {todo.description && (
-                                            <p className="ml-9 mt-2 text-sm text-gray-600">
-                                                {todo.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                    ) : (
+                                        <div className="p-4">
+                                            <div className="flex items-center gap-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={todo.completed}
+                                                    onChange={() => handleToggleTodo(todo._id, todo.completed)}
+                                                    className="h-5 w-5 rounded border-gray-300 cursor-pointer focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <span className={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                                    {todo.title}
+                                                </span>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleEdit(todo)}
+                                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md font-medium flex items-center gap-2"
+                                                    >
+                                                        <span>Edit</span>
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTodo(todo._id)}
+                                                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-md font-medium flex items-center gap-2"
+                                                    >
+                                                        <span>Delete</span>
+                                                        <Trash size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {todo.description && (
+                                                <p className="ml-9 mt-2 text-sm text-gray-600">
+                                                    {todo.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             </div>
-        </div>
+            <footer className="fixed bottom-0 w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500">
+                <p className="text-center text-white text-sm md:text-base font-serif italic tracking-wide">
+                    <span className="font-semibold text-yellow-400">Quote of The Day - </span>
+                    {quote}
+                </p>
+            </footer>
+
+        </>
     );
 };
 
