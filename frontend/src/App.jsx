@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import AuthForm from './components/Auth'
 import TodoInterface from './components/TodoInterface'
+import axios from 'axios';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,7 +13,19 @@ export default function App() {
     // Check if token exists in localStorage
     const token = localStorage.getItem('todoToken');
     if (token) {
-      setIsAuthenticated(true);
+      // Validate token by making a request to protected endpoint
+      axios.get('http://localhost:3000/todos', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(() => {
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        localStorage.removeItem('todoToken');
+        setIsAuthenticated(false);
+      });
     }
   }, []);
 
