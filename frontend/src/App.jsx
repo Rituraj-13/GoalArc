@@ -5,6 +5,9 @@ import './App.css'
 import AuthForm from './components/Auth'
 import TodoInterface from './components/TodoInterface'
 import axios from 'axios';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import LandingPage from './components/LandingPage'
+import Footer from './components/Footer.jsx'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,13 +22,13 @@ export default function App() {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(() => {
-        setIsAuthenticated(true);
-      })
-      .catch(() => {
-        localStorage.removeItem('todoToken');
-        setIsAuthenticated(false);
-      });
+        .then(() => {
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          localStorage.removeItem('todoToken');
+          setIsAuthenticated(false);
+        });
     }
   }, []);
 
@@ -36,20 +39,37 @@ export default function App() {
   };
 
   return (
-    <>
-      {!isAuthenticated ? (
-        <AuthForm setIsAuthenticated={setIsAuthenticated} />
-      ) : (
-        <div>
-          <button 
-            onClick={handleLogout}
-            className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg"
-          >
-            Logout
-          </button>
-          <TodoInterface />
-        </div>
-      )}
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          isAuthenticated ?
+            <Navigate to="/todos" /> :
+            <LandingPage />
+        } />
+
+        <Route path="/auth" element={
+          isAuthenticated ?
+            <Navigate to="/todos" /> :
+            <AuthForm setIsAuthenticated={setIsAuthenticated} />
+        } />
+
+        <Route path="/todos" element={
+          isAuthenticated ? (
+            <div>
+              <button
+                onClick={handleLogout}
+                className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+              >
+                Logout
+              </button>
+              <TodoInterface />
+              {/* <Footer /> */}
+            </div>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }
