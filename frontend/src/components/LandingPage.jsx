@@ -1,12 +1,13 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useNavigate } from 'react-router-dom'
+
 
 const Button = ({ children, primary, onClick }) => (
     <button
         onClick={onClick}
         className={`px-6 py-3 font-bold rounded-full transition-all duration-300 ${primary
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-transparent text-blue-600 border-2 border-blue-600 hover:bg-blue-100"
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-transparent text-blue-600 border-2 border-blue-600 hover:bg-blue-100"
             }`}
     >
         {children}
@@ -22,10 +23,21 @@ const FeatureCard = ({ icon, title, description }) => (
 )
 
 const LandingPage = () => {
+    useEffect(() => {
+        // getQuote();
+        const backendHit = async () => {
+            await fetch("http://localhost:3000/hitBackend")
+                .then(response => response.json())
+                .then(data => console.log(data));
+
+        }
+        backendHit();
+    }, []);
+
     const navigate = useNavigate();
     return (
         <div className="font-sans text-gray-900 leading-normal">
-            <header className="flex justify-between items-center px-8 py-6 bg-white shadow-md">
+            <header className="flex justify-between items-center px-8 py-4 bg-white shadow-md">
                 <div className="text-2xl font-bold text-blue-600">TodoMaster</div>
                 <Button onClick={() => navigate('/auth')}>Sign In / Sign Up</Button>
             </header>
@@ -36,7 +48,7 @@ const LandingPage = () => {
                     <p className="text-xl max-w-2xl mx-auto mb-10">
                         Stay organized, boost productivity, and never miss a deadline with TodoMaster.
                     </p>
-                    <Button primary onClick={() => navigate('/auth') }>
+                    <Button primary onClick={() => navigate('/auth')}>
                         Get Started
                     </Button>
                 </section>
