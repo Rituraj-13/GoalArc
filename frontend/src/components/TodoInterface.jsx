@@ -185,13 +185,12 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         <>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
                 <Header setIsAuthenticated={setIsAuthenticated} />
-                <div className="container mx-auto px-4 py-8 pb-16">
-
-                    <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-220px)]">
+                <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-16">
+                    <div className="flex flex-col lg:flex-row gap-4 sm:gap-8 h-auto lg:h-[calc(100vh-220px)]">
                         {/* Left Side - Todo Creation */}
-                        <div className="lg:w-2/5">
+                        <div className="w-full lg:w-2/5">
                             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                                <h3 className="text-xl font-semibold px-6 py-4 border-b border-gray-100
+                                <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
                                     font-['Inter'] tracking-wide via-violet-200 flex justify-center text-violet-900">
                                     Create New Task
@@ -244,14 +243,14 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                         </div>
 
                         {/* Right Side - Todo List */}
-                        <div className="lg:w-3/5">
+                        <div className="w-full lg:w-3/5">
                             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                                <h3 className="text-xl font-semibold px-6 py-4 border-b border-gray-100
+                                <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
                                     font-['Inter'] tracking-wide flex justify-center via-violet-200 text-violet-900 ">
                                     Your Tasks
                                 </h3>
-                                <div className="p-6">
+                                <div className="p-3 sm:p-6">
                                     <div className="h-[calc(100vh-400px)] overflow-y-auto pr-2
                                         scrollbar-thin scrollbar-thumb-blue-500/50 hover:scrollbar-thumb-blue-500
                                         scrollbar-track-gray-100 scrollbar-thumb-rounded-full
@@ -261,17 +260,17 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
+                                            <div className="space-y-3 sm:space-y-4">
                                                 {todos.length === 0 ? (
-                                                    <div className="text-center py-8 bg-white rounded-xl shadow-md border border-slate-200">
-                                                        <p className="text-gray-500">No tasks yet. Create one to get started!</p>
+                                                    <div className="text-center py-6 sm:py-8 bg-white rounded-xl shadow-md border border-slate-200">
+                                                        <p className="text-gray-500 text-sm sm:text-base">No tasks yet. Create one to get started!</p>
                                                     </div>
                                                 ) : (
-                                                    <ul className="space-y-4 mb-4">
+                                                    <ul className="space-y-3 sm:space-y-4 mb-4">
                                                         {todos.map((todo) => (
                                                             <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
                                                                 {editingId === todo._id ? (
-                                                                    <div className="p-4">
+                                                                    <div className="p-3 sm:p-4">
                                                                         <input
                                                                             type="text"
                                                                             value={editTitle}
@@ -320,19 +319,34 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="p-4 shadow-md rounded-lg hover:shadow-lg transition-shadow border border-slate-200">
-                                                                        <div className="flex items-center gap-4">
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={todo.completed}
-                                                                                onChange={() => handleToggleTodo(todo._id, todo.completed)}
-                                                                                className="h-5 w-5 rounded border-gray-300 cursor-pointer focus:ring-2 focus:ring-blue-500"
-                                                                            />
-                                                                            <span className={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-500 ' : 'text-gray-800'}`}>
-                                                                                {todo.title}
-                                                                            </span>
-                                                                            <div className="flex items-center justify-between gap-4 h-12 px-4">
-                                                                                <div className={`text-sm  text-gray-800 border rounded-md p-2 select-none ${todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300 ' : 'bg-gradient-to-r from-orange-100 to-red-200'}`}>
+                                                                    <div className="p-3 sm:p-4 shadow-md rounded-lg hover:shadow-lg transition-shadow border border-slate-200">
+                                                                        {/* Mobile layout (<sm breakpoint) */}
+                                                                        <div className="flex flex-col gap-2">
+                                                                            {/* Title row */}
+                                                                            <div className="flex items-center gap-3">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={todo.completed}
+                                                                                    onChange={() => handleToggleTodo(todo._id, todo.completed)}
+                                                                                    className="h-4 sm:h-5 w-4 sm:w-5 rounded border-gray-300 cursor-pointer focus:ring-2 focus:ring-blue-500"
+                                                                                />
+                                                                                <span className={`flex-1 text-base sm:text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                                                                    {todo.title}
+                                                                                </span>
+                                                                            </div>
+                                                                            
+                                                                            {/* Description row */}
+                                                                            {todo.description && (
+                                                                                <p className="ml-7 text-xs sm:text-sm text-gray-600 break-words whitespace-pre-wrap max-w-full overflow-hidden">
+                                                                                    {todo.description}
+                                                                                </p>
+                                                                            )}
+                                                                            
+                                                                            {/* Actions row */}
+                                                                            <div className="ml-7 flex flex-row items-center justify-between gap-2">
+                                                                                <div className={`text-xs sm:text-sm text-gray-800 border rounded-md p-1.5 sm:p-2 select-none ${
+                                                                                    todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300' : 'bg-gradient-to-r from-orange-100 to-red-200'
+                                                                                }`}>
                                                                                     Due: {todo.dueDate ? new Date(todo.dueDate).toLocaleString('en-US', {
                                                                                         year: 'numeric',
                                                                                         month: 'short',
@@ -340,29 +354,23 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                                         hour: '2-digit',
                                                                                         minute: '2-digit'
                                                                                     }) : 'No due date'}
-
                                                                                 </div>
                                                                                 <div className="flex gap-2">
                                                                                     <button
                                                                                         onClick={() => handleEdit(todo)}
-                                                                                        className="p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
+                                                                                        className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
                                                                                     >
-                                                                                        <Pencil size={16} />
+                                                                                        <Pencil size={20} />
                                                                                     </button>
                                                                                     <button
                                                                                         onClick={() => handleDeleteTodo(todo._id)}
-                                                                                        className="p-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
+                                                                                        className="p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
                                                                                     >
-                                                                                        <Trash size={16} />
+                                                                                        <Trash size={20} />
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        {todo.description && (
-                                                                            <p className="ml-9 mt-2 text-sm text-gray-600 flex">
-                                                                                {todo.description}
-                                                                            </p>
-                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </li>
@@ -380,9 +388,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 <Toaster position="bottom-right" />
             </div>
 
-            {/* Existing footer */}
-            <footer className="fixed bottom-0 w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500">
-                <p className="text-center text-white text-sm md:text-base font-serif italic tracking-wide">
+            {/* Responsive footer */}
+            <footer className="fixed bottom-0 w-full py-2 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500">
+                <p className="text-center text-white text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2">
                     <span className="font-semibold text-yellow-400">Quote of The Day - </span>
                     {quote}
                 </p>
