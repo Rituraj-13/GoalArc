@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 // Create a new todo
 router.post('/', async (req, res) => {
     try {
-        const { title, description } = req.body;
+        const { title, description, dueDate } = req.body;
         
         if (!title) {
             return res.status(400).json({ error: 'Title is required' });
@@ -30,6 +30,7 @@ router.post('/', async (req, res) => {
         const todo = new Todo({
             title,
             description,
+            dueDate: dueDate ? new Date(dueDate) : null,
             user: req.userId,
             completed: false
         });
@@ -44,7 +45,7 @@ router.post('/', async (req, res) => {
 // Update todo
 router.put('/:id', async (req, res) => {
     try {
-        const { title, description, completed } = req.body;
+        const { title, description, completed, dueDate } = req.body;
         const todoId = req.params.id;
 
         const todo = await Todo.findOne({ _id: todoId, user: req.userId });
@@ -55,6 +56,7 @@ router.put('/:id', async (req, res) => {
 
         if (title) todo.title = title;
         if (description !== undefined) todo.description = description;
+        if (dueDate !== undefined) todo.dueDate = dueDate;
         if (completed !== undefined) todo.completed = completed;
 
         const updatedTodo = await todo.save();
