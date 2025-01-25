@@ -3,6 +3,11 @@ import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
 import { Trash, Pencil } from 'lucide-react';
 import Header from './Header';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from "dayjs";
+import { DatePicker, DateTimePicker, MobileDateTimePicker } from '@mui/x-date-pickers';
+
 
 const TodoInterface = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
@@ -13,6 +18,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [editTitle, setEditTitle] = useState('');
     const [editDesc, setEditDesc] = useState('');
     const [quote, setQuote] = useState("");
+    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [editDate, setEditDate] = useState(dayjs());
 
     // Fetch todos on component mount
     useEffect(() => {
@@ -42,9 +49,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     };
 
     const handleAddTodo = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default form submission
+
         if (!newTodo.trim()) {
-            toast.error("Please fill out the fields !");
+            toast.error("Please fill out the fields!");
             return;
         }
 
@@ -53,7 +61,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             await axios.post('http://localhost:3000/todos',
                 {
                     title: newTodo,
-                    description: newDesc
+                    description: newDesc,
+                    dueDate: selectedDate.toISOString()
                 },
                 {
                     headers: {
@@ -61,12 +70,18 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     }
                 }
             );
+
+            // Clear form fields
             setNewTodo('');
             setNewDesc('');
-            fetchTodos();
-            toast.success('Todo Added Successfully !');
+            setSelectedDate(dayjs()); // Reset to current date/time
+
+            // Fetch updated todos
+            await fetchTodos();
+            toast.success('Todo Added Successfully!');
         } catch (error) {
-            toast.error('Failed to add todo !');
+            console.error('Error adding todo:', error);
+            toast.error('Failed to add todo!');
         }
     };
 
@@ -106,6 +121,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         setEditingId(todo._id);
         setEditTitle(todo.title);
         setEditDesc(todo.description || '');
+        setEditDate(dayjs(todo.dueDate));
     };
 
     const handleUpdateTodo = async (id) => {
@@ -114,7 +130,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             await axios.put(`http://localhost:3000/todos/${id}`,
                 {
                     title: editTitle,
-                    description: editDesc
+                    description: editDesc,
+                    dueDate: editDate.toISOString()
                 },
                 {
                     headers: {
@@ -195,6 +212,26 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                             placeholder="Add details..."
                                             rows="3"
                                         />
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <MobileDateTimePicker
+                                                label="Due Date & Time"
+                                                value={selectedDate}
+                                                onChange={(newValue) => {
+                                                    setSelectedDate(newValue);
+                                                }}
+                                                className="w-full"
+                                                format="DD/MM/YYYY hh:mm A"
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "outlined",
+                                                        fullWidth: true,
+                                                        className: "bg-white"
+                                                    }
+                                                }}
+                                                minDateTime={dayjs().startOf('day')}
+                                                ampm={true}
+                                            />
+                                        </LocalizationProvider>
                                         <button
                                             type="submit"
                                             className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] font-semibold shadow-md"
@@ -247,7 +284,27 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                             className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                                                             rows="2"
                                                                         />
-                                                                        <div className="flex gap-2">
+                                                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                            <MobileDateTimePicker
+                                                                                label="Due Date & Time"
+                                                                                value={editDate}
+                                                                                onChange={(newValue) => {
+                                                                                    setEditDate(newValue);
+                                                                                }}
+                                                                                className="w-full"
+                                                                                format="DD/MM/YYYY hh:mm A"
+                                                                                slotProps={{
+                                                                                    textField: {
+                                                                                        variant: "outlined",
+                                                                                        fullWidth: true,
+                                                                                        className: "bg-white"
+                                                                                    }
+                                                                                }}
+                                                                                minDateTime={dayjs().startOf('day')}
+                                                                                ampm={true}
+                                                                            />
+                                                                        </LocalizationProvider>
+                                                                        <div className="flex gap-2 mt-3">
                                                                             <button
                                                                                 onClick={() => handleUpdateTodo(todo._id)}
                                                                                 className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
@@ -274,25 +331,35 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                             <span className={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-500 ' : 'text-gray-800'}`}>
                                                                                 {todo.title}
                                                                             </span>
-                                                                            <div className="flex gap-2">
-                                                                                <button
-                                                                                    onClick={() => handleEdit(todo)}
-                                                                                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md font-medium flex items-center gap-2"
-                                                                                >
-                                                                                    <span>Edit</span>
-                                                                                    <Pencil size={16} />
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => handleDeleteTodo(todo._id)}
-                                                                                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-lg hover:from-red-600 hover:to-rose-700 transition-all shadow-md font-medium flex items-center gap-2"
-                                                                                >
-                                                                                    <span>Delete</span>
-                                                                                    <Trash size={16} />
-                                                                                </button>
+                                                                            <div className="flex items-center justify-between gap-4 h-12 px-4">
+                                                                                <div className={`text-sm  text-gray-800 border rounded-md p-2 select-none ${todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300 ' : 'bg-gradient-to-r from-orange-100 to-red-200'}`}>
+                                                                                    Due: {todo.dueDate ? new Date(todo.dueDate).toLocaleString('en-US', {
+                                                                                        year: 'numeric',
+                                                                                        month: 'short',
+                                                                                        day: 'numeric',
+                                                                                        hour: '2-digit',
+                                                                                        minute: '2-digit'
+                                                                                    }) : 'No due date'}
+
+                                                                                </div>
+                                                                                <div className="flex gap-2">
+                                                                                    <button
+                                                                                        onClick={() => handleEdit(todo)}
+                                                                                        className="p-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
+                                                                                    >
+                                                                                        <Pencil size={16} />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleDeleteTodo(todo._id)}
+                                                                                        className="p-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
+                                                                                    >
+                                                                                        <Trash size={16} />
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                         {todo.description && (
-                                                                            <p className="ml-9 mt-2 text-sm text-gray-600">
+                                                                            <p className="ml-9 mt-2 text-sm text-gray-600 flex">
                                                                                 {todo.description}
                                                                             </p>
                                                                         )}

@@ -8,7 +8,7 @@ import axios from 'axios';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 
-export default function App() {
+export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -38,30 +38,30 @@ export default function App() {
   };
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={
-          isAuthenticated ?
-            <Navigate to="/todos" /> :
-            <LandingPage />
-        } />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={
+            isAuthenticated ?
+              <Navigate to="/todos" /> :
+              <LandingPage />
+          } />
 
-        <Route path="/auth" element={
-          isAuthenticated ?
-            <Navigate to="/todos" /> :
-            <AuthForm setIsAuthenticated={setIsAuthenticated} />
-        } />
+          <Route path="/auth" element={
+            isAuthenticated ?
+              <Navigate to="/todos" /> :
+              <AuthForm setIsAuthenticated={setIsAuthenticated} />
+          } />
 
-        <Route path="/todos" element={
-          isAuthenticated ? (
-            <div>
-              <TodoInterface setIsAuthenticated={setIsAuthenticated} />
-            </div>
-          ) : (
-            <Navigate to="/auth" />
-          )
-        } />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/todos" element={
+            isAuthenticated ? (
+              <div>
+                <TodoInterface setIsAuthenticated={setIsAuthenticated} />
+              </div>
+            ) : (
+              <Navigate to="/auth" />
+            )
+          } />
+        </Routes>
+      </BrowserRouter>
   )
 }
