@@ -4,15 +4,17 @@ import bcrypt from "bcrypt"
 import mongoose from "mongoose";
 import cors from "cors";
 import router from "./routes/todo.js"
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors())
 app.use('/todos', router);
 const port = 3000;
-const JWT_SECRET = "uRtheBest"
-
-mongoose.connect('mongodb+srv://admin:xQpyxoO4EEcO74uh@cluster0.jybslyg.mongodb.net/todoAI');
+const JWT_SECRET = process.env.JWT_SECRET
+const DB_URL = process.env.MONGO_URL
+mongoose.connect(DB_URL);
 
 const userSchema = new mongoose.Schema({
     username: String,
@@ -29,6 +31,13 @@ const hashingPassword = async (passwordToHash) => {
         throw new Error('Password hashing failed');
     }
 }
+
+// ! Hit the backend early to prevent coldstart issue !
+app.get('/hitBackend', async (req, res) => {
+    return res.status(200).json({
+        msg : "UP"
+    })
+})
 
 app.post('/signup', async (req, res) => {
     const username = req.body.name;
