@@ -1,11 +1,13 @@
-import React from "react"
-import { useNavigate } from "react-router-dom"
-import { 
-    Lock, 
-    CheckCircle, 
-    Calendar, 
-    Edit, 
-    FileText, 
+import React, {useRef} from "react"
+import { useNavigate } from "react-router-dom";
+import bannerImage from '../assets/bannerImage.png'
+
+import {
+    Lock,
+    CheckCircle,
+    Calendar,
+    Edit,
+    FileText,
     Trash2,
     PlayCircle,
     WandSparkles
@@ -15,8 +17,8 @@ const Button = ({ children, primary, onClick }) => (
     <button
         onClick={onClick}
         className={`px-8 py-4 font-bold text-lg rounded-full transition-all duration-300 ${primary
-                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
-                : "bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg"
+            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+            : "bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg"
             }`}
     >
         {children}
@@ -34,7 +36,12 @@ const FeatureCard = ({ Icon, title, description }) => (
 )
 
 const LandingPage = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const featuresRef = useRef(null);
+
+    const scrollToFeatures = () => {
+        featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
 
     return (
         <div className="font-sans text-gray-900 leading-normal">
@@ -55,17 +62,23 @@ const LandingPage = () => {
                                 <Button primary onClick={() => navigate("/auth")}>
                                     Get Started
                                 </Button>
-                                <Button onClick={() => console.log("Learn More clicked")}>Learn More</Button>
+                                <Button onClick={scrollToFeatures}>Learn More</Button>
                             </div>
                         </div>
                         <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
                             <img
-                                src="/placeholder.svg?height=720&width=1280"
+                                src={bannerImage}
                                 alt="GoalArc Demo Video"
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-fill"
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <button className="bg-white bg-opacity-75 rounded-full p-4 text-blue-600 hover:bg-opacity-100 transition-all duration-300">
+                                <button
+                                    className="relative bg-white bg-opacity-75 rounded-full p-4 text-blue-600 hover:bg-opacity-100 transition-all duration-300 border hover:bg-blue-100 hover:border-blue-200 group"
+                                    aria-label="Play demo video"
+                                >
+                                    <span className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap">
+                                        Video will be uploaded Soon !
+                                    </span>
                                     <PlayCircle size={48} />
                                 </button>
                             </div>
@@ -74,7 +87,7 @@ const LandingPage = () => {
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-blue-900 to-transparent"></div>
                 </section>
 
-                <section className="py-24 px-8 bg-blue-50">
+                <section className="py-24 px-8 bg-blue-50" id="features" ref={featuresRef}>
                     <h2 className="text-4xl font-bold text-center mb-16 text-blue-900">Key Features</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <FeatureCard
@@ -89,7 +102,7 @@ const LandingPage = () => {
                         />
                         <FeatureCard
                             Icon={Calendar}
-                            title="Deadline-based Arrangement"
+                            title="Organized Tasks"
                             description="Automatically organize your tasks based on deadlines for better time management."
                         />
                         <FeatureCard

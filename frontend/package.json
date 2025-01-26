@@ -12,6 +12,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@ionic/react": "^8.4.2",
+    "@mui/icons-material": "^6.4.1",
     "@uiw/react-md-editor": "^4.0.5",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",

@@ -31,37 +31,24 @@ export default function App({ children }) {
     }
   }, []);
 
-  // Add handleLogout function
-  const handleLogout = () => {
-    localStorage.removeItem('todoToken');
-    setIsAuthenticated(false);
-  };
 
   return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            isAuthenticated ?
-              <Navigate to="/todos" /> :
-              <LandingPage />
-          } />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
 
-          <Route path="/auth" element={
-            isAuthenticated ?
-              <Navigate to="/todos" /> :
-              <AuthForm setIsAuthenticated={setIsAuthenticated} />
-          } />
+        <Route path="/auth" element={
+          isAuthenticated ?
+            <Navigate to="/todos" /> :
+            <AuthForm setIsAuthenticated={setIsAuthenticated} />
+        } />
 
-          <Route path="/todos" element={
-            isAuthenticated ? (
-              <div>
-                <TodoInterface setIsAuthenticated={setIsAuthenticated} />
-              </div>
-            ) : (
-              <Navigate to="/auth" />
-            )
-          } />
-        </Routes>
-      </BrowserRouter>
+        <Route path="/todos" element={
+          isAuthenticated ?
+            <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
+            <Navigate to="/auth" />
+        } />
+      </Routes>
+    </BrowserRouter>
   )
 }

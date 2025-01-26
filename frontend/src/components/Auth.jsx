@@ -9,10 +9,47 @@ const AuthForm = ({ setIsAuthenticated }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     const endpoint = isSignUp ? "signup" : "signin";
+    //     const backendUrl = `http://localhost:3000/${endpoint}`;
+    //     try {
+    //         const response = await axios.post(backendUrl,
+    //             {
+    //                 name: email,
+    //                 pw: password
+    //             },
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'application/json'
+    //                 }
+    //             }
+    //         );
+
+    //         if (response.data.token) {
+    //             // Store token in the local storage
+    //             localStorage.setItem('todoToken', response.data.token);
+    //             setIsAuthenticated(true);
+    //             toast.success(response.data.msg);
+    //         } else if (response.data.userCheck === "true") {
+    //             toast.error(response.data.msg);
+    //         }
+
+    //     } catch (error) {
+    //         const errorMessage = error.response?.data?.msg || 'An error occurred during signup';
+    //         toast.error(errorMessage);
+    //         console.error('Error during signup:', error.response?.data || error.message);
+    //     }
+    // };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const endpoint = isSignUp ? "signup" : "signin";
         const backendUrl = `http://localhost:3000/${endpoint}`;
+
+        // Show loading toast
+        const loadingToast = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
+
         try {
             const response = await axios.post(backendUrl,
                 {
@@ -26,27 +63,36 @@ const AuthForm = ({ setIsAuthenticated }) => {
                 }
             );
 
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+
             if (response.data.token) {
-                // Store token in the local storage
                 localStorage.setItem('todoToken', response.data.token);
                 setIsAuthenticated(true);
-                toast.success(response.data.msg);
+                // Success toast with better styling
+                toast.success(response.data.msg, {
+                    duration: 3000,
+                });
             } else if (response.data.userCheck === "true") {
-                toast.error(response.data.msg);
+                toast.error(response.data.msg, {
+                    duration: 4000
+                });
             }
 
         } catch (error) {
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+
             const errorMessage = error.response?.data?.msg || 'An error occurred during signup';
-            toast.error(errorMessage);
-            console.error('Error during signup:', error.response?.data || error.message);
+            toast.error(errorMessage, {
+                duration: 4000,
+            });
         }
     };
-
     return (
         <>
             <Header />
             <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-                <Toaster position="top-center" />
                 <div className="max-w-md w-full space-y-8">
                     <div className="bg-white shadow-md rounded-lg overflow-hidden">
                         <div className="px-6 py-8">

@@ -223,6 +223,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         </span>,
         execute: async (state, api) => {
             try {
+                if (!newTodo) {
+                    toast.error('Retry by filling the Title !');
+                    return;
+                }
                 // Show loading state
                 toast.loading('Generating Description..⌛');
 
@@ -265,34 +269,13 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                             className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                             placeholder="What needs to be done?"
                                         />
-                                        {/* <textarea
-                                            value={newDesc}
-                                            onChange={(e) => setNewDesc(e.target.value)}
-                                            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-                                            placeholder="Add details..."
-                                            rows="3"
-                                        /> */}
-                                        {/* <MDEditor value={newDesc} onChange={(val) => setNewDesc(val || "")} /> */}
-                                        {/* <MDEditor
-                                            value={newDesc}
-                                            onChange={(val) => setNewDesc(val || "")}
-                                            commands={[
-                                                commands.bold,
-                                                commands.italic,
-                                                commands.link,
-                                                commands.quote,
-                                                commands.title,
-                                                customPreviewCommand
-
-                                                // Add or remove commands as needed
-                                            ]}
-                                        /> */}
+                                        
                                         <MDEditor
                                             value={newDesc}
                                             onChange={setNewDesc}
                                             preview="edit"
                                             height={200}
-                                            className="mb-4"
+                                            className="mb-4 "
                                             textareaProps={{
                                                 placeholder: "Add details for the task"
                                             }}
@@ -303,7 +286,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                 // commands.hr,
                                                 commands.title,
                                                 commands.divider,
-                                                commands.quote,
+                                                // commands.quote,
                                                 commands.code,
                                                 commands.codeBlock,
                                                 // commands.image,
@@ -373,11 +356,11 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                         {todos
                                                             .sort((a, b) => {
                                                                 // Push completed items to the end
-                                                                if (a.completed) return 1; 
-                                                                if (b.completed) return -1; 
+                                                                if (a.completed) return 1;
+                                                                if (b.completed) return -1;
                                                                 // Push items without due date to the end
-                                                                if (!a.dueDate) return 1;  
-                                                                if (!b.dueDate) return -1; 
+                                                                if (!a.dueDate) return 1;
+                                                                if (!b.dueDate) return -1;
 
                                                                 // Compare due dates
                                                                 return new Date(a.dueDate) - new Date(b.dueDate);
@@ -413,7 +396,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                                     // commands.hr,
                                                                                     commands.title,
                                                                                     commands.divider,
-                                                                                    commands.quote,
+                                                                                    // commands.quote,
                                                                                     commands.code,
                                                                                     commands.codeBlock,
                                                                                     // commands.image,
@@ -529,10 +512,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 <Toaster position="bottom-right" />
             </div>
 
-            {/* Responsive footer */}
-            <footer className="fixed bottom-0 w-full py-2 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500">
-                <p className="text-center text-white text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2">
-                    <span className="font-semibold text-yellow-400">Quote of The Day - </span>
+            <footer className="fixed bottom-0 w-full py-2 sm:py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
+                <p className="text-center text-gray-700 text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2">
+                    <span className="font-semibold text-blue-600">Quote of The Day - </span>
                     {quote}
                 </p>
             </footer>
