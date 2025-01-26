@@ -257,7 +257,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
                                 <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
-                                    font-['Inter'] tracking-wide via-violet-200 flex justify-center text-violet-900">
+                                    font-sans tracking-wide via-violet-200 flex justify-center text-violet-900 select-none">
                                     Create New Task
                                 </h3>
                                 <div className="p-6">
@@ -277,7 +277,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                             height={200}
                                             className="mb-4 "
                                             textareaProps={{
-                                                placeholder: "Add details for the task"
+                                                placeholder: "Add details for the task ... "
                                             }}
                                             commands={[
                                                 commands.bold,
@@ -333,7 +333,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
                                 <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
-                                    font-['Inter'] tracking-wide flex justify-center via-violet-200 text-violet-900 ">
+                                    font-sans tracking-wide flex justify-center via-violet-200 text-violet-900 select-none">
                                     Your Tasks
                                 </h3>
                                 <div className="p-3 sm:p-6">
@@ -349,7 +349,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                             <div className="space-y-3 sm:space-y-4">
                                                 {todos.length === 0 ? (
                                                     <div className="text-center py-6 sm:py-8 bg-white rounded-xl shadow-md border border-slate-200">
-                                                        <p className="text-gray-500 text-sm sm:text-base">No tasks yet. Create one to get started!</p>
+                                                        <p className="text-gray-500 text-sm sm:text-base select-none">No tasks yet. Create one to get started!</p>
                                                     </div>
                                                 ) : (
                                                     <ul className="space-y-3 sm:space-y-4 mb-4">
@@ -469,15 +469,18 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                                                 <div className="ml-14 flex flex-row items-center justify-between gap-2">
                                                                                     <div className={`text-xs sm:text-sm text-gray-800 border rounded-md p-1.5 sm:p-2 select-none ${todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300' : 'bg-gradient-to-r from-orange-100 to-red-200'
                                                                                         }`}>
-                                                                                        {todo.dueDate ?
+                                                                                        {(todo.dueDate && (!todo.completed)) ?
                                                                                             (new Date(todo.dueDate).getTime() > new Date().getTime()
-                                                                                                ? "Due:" : "Overdue:") : "null"} {todo.dueDate ? new Date(todo.dueDate).toLocaleString('en-US', {
+                                                                                                    ? <span
+                                                                                                    className='text-gray-600 font-medium'>Due:</span> : <span
+                                                                                                    className='text-gray-600 font-medium'>Overdue:</span>) : <span
+                                                                                                    className='text-gray-600 font-medium'>Completed</span>} {(todo.dueDate && (!todo.completed)) ? new Date(todo.dueDate).toLocaleString('en-US', {
                                                                                                     year: 'numeric',
                                                                                                     month: 'short',
                                                                                                     day: 'numeric',
                                                                                                     hour: '2-digit',
                                                                                                     minute: '2-digit'
-                                                                                                }) : 'No due date'}
+                                                                                                }) : ''}
                                                                                     </div>
                                                                                     <div className="flex gap-2">
                                                                                         <button
@@ -513,8 +516,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             </div>
 
             <footer className="fixed bottom-0 w-full py-2 sm:py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
-                <p className="text-center text-gray-700 text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2">
-                    <span className="font-semibold text-blue-600">Quote of The Day - </span>
+                <p className="text-center text-gray-700 text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2 select-none">
+                    <span className="font-semibold text-blue-600 select-none">Quote of The Day - </span>
                     {quote}
                 </p>
             </footer>
