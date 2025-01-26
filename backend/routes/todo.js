@@ -91,7 +91,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 router.post('/generate-description', async (req, res) => {
     try {
         const { title } = req.body;
-        const API_Key = process.env.VITE_AI_API_KEY; // Store in backend .env
+        const structure = "```markdown...response...```"
+        const API_Key = process.env.VITE_AI_API_KEY;
         const genAI = new GoogleGenerativeAI(API_Key);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -100,7 +101,7 @@ router.post('/generate-description', async (req, res) => {
     1 - Do not give any option & have 3 points
     2 - Do not have any formatting for checkboxes
     3 - The Generated response should not have a title similar to the provided one
-    4 - Avoid generating response for any title `;
+    4 - Every response should have this strucure - ${structure}`;
 
         const result = await model.generateContent(prompt);
         const description = await result.response.text();
