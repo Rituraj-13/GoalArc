@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
-import { Trash, Pencil } from 'lucide-react';
+import { Trash, Pencil, WandSparkles } from 'lucide-react';
 import Header from './Header';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
 import { DatePicker, DateTimePicker, MobileDateTimePicker } from '@mui/x-date-pickers';
+import MDEditor, { commands } from "@uiw/react-md-editor";
+import { Checkbox } from '@mui/material';
+import AIResponse from '../utils/AIResponse';
 
 
 const TodoInterface = ({ setIsAuthenticated }) => {
@@ -181,6 +184,64 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         }
     }
 
+    // const toggleCommand = {
+    //     name: 'toggle',
+    //     keyCommand: 'toggle',
+    //     buttonProps: {
+    //         'aria-label': 'Add toggle',
+    //         'title': 'AI Generated Description'
+    //     },
+    //     icon: <span>
+    //         <WandSparkles
+    //             color="#5056fb"
+    //             size={14}
+    //         strokeWidth={2}/>
+    //     </span>,
+    //     execute: (state, api) => {
+    //         AIResponse(newTodo)
+    //         let modifyText = " ";
+    //         if (!state.selectedText) {
+    //             modifyText = '[toggle]Toggle this text[/toggle]';
+    //         }
+    //         api.replaceSelection(modifyText);
+    //     },
+    // };
+
+    const toggleCommand = {
+        name: 'toggle',
+        keyCommand: 'toggle',
+        buttonProps: {
+            'aria-label': 'Add toggle',
+            'title': 'AI Generated Description'
+        },
+        icon: <span>
+            <WandSparkles
+                color="#5056fb"
+                size={14}
+                strokeWidth={2}
+            />
+        </span>,
+        execute: async (state, api) => {
+            try {
+                // Show loading state
+                toast.loading('Generating Description..⌛');
+
+                // Get AI response
+                const aiDesc = await AIResponse(newTodo);
+
+                // Set the AI generated description in the MDEditor
+                setNewDesc(aiDesc);
+
+                // Dismiss loading toast and show success
+                toast.dismiss();
+                toast.success('Description generated!');
+            } catch (error) {
+                toast.dismiss();
+                toast.error('Failed to generate description');
+                console.error('Error:', error);
+            }
+        },
+    };
     return (
         <>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -204,12 +265,54 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                             className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                             placeholder="What needs to be done?"
                                         />
-                                        <textarea
+                                        {/* <textarea
                                             value={newDesc}
                                             onChange={(e) => setNewDesc(e.target.value)}
                                             className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
                                             placeholder="Add details..."
                                             rows="3"
+                                        /> */}
+                                        {/* <MDEditor value={newDesc} onChange={(val) => setNewDesc(val || "")} /> */}
+                                        {/* <MDEditor
+                                            value={newDesc}
+                                            onChange={(val) => setNewDesc(val || "")}
+                                            commands={[
+                                                commands.bold,
+                                                commands.italic,
+                                                commands.link,
+                                                commands.quote,
+                                                commands.title,
+                                                customPreviewCommand
+
+                                                // Add or remove commands as needed
+                                            ]}
+                                        /> */}
+                                        <MDEditor
+                                            value={newDesc}
+                                            onChange={setNewDesc}
+                                            preview="edit"
+                                            height={200}
+                                            className="mb-4"
+                                            textareaProps={{
+                                                placeholder: "Add details for the task"
+                                            }}
+                                            commands={[
+                                                commands.bold,
+                                                commands.italic,
+                                                // commands.strikethrough,
+                                                // commands.hr,
+                                                commands.title,
+                                                commands.divider,
+                                                commands.quote,
+                                                commands.code,
+                                                commands.codeBlock,
+                                                // commands.image,
+                                                commands.link,
+                                                commands.unorderedListCommand,
+                                                commands.orderedListCommand,
+                                                toggleCommand
+                                                // commands.checkedListCommand
+                                            ]}
                                         />
                                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                                             <MobileDateTimePicker
@@ -251,7 +354,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                     Your Tasks
                                 </h3>
                                 <div className="p-3 sm:p-6">
-                                    <div className="h-[calc(100vh-400px)] overflow-y-auto pr-2
+                                    <div className="h-[calc(100vh-375px)] overflow-y-auto pr-2
                                         scrollbar-thin scrollbar-thumb-blue-500/50 hover:scrollbar-thumb-blue-500
                                         scrollbar-track-gray-100 scrollbar-thumb-rounded-full
                                         scrollbar-track-rounded-full">
@@ -267,114 +370,152 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                                     </div>
                                                 ) : (
                                                     <ul className="space-y-3 sm:space-y-4 mb-4">
-                                                        {todos.map((todo) => (
-                                                            <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
-                                                                {editingId === todo._id ? (
-                                                                    <div className="p-3 sm:p-4">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editTitle}
-                                                                            onChange={(e) => setEditTitle(e.target.value)}
-                                                                            className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                        />
-                                                                        <textarea
-                                                                            value={editDesc}
-                                                                            onChange={(e) => setEditDesc(e.target.value)}
-                                                                            className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                                                            rows="2"
-                                                                        />
-                                                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                                            <MobileDateTimePicker
-                                                                                label="Due Date & Time"
-                                                                                value={editDate}
-                                                                                onChange={(newValue) => {
-                                                                                    setEditDate(newValue);
-                                                                                }}
-                                                                                className="w-full"
-                                                                                format="DD/MM/YYYY hh:mm A"
-                                                                                slotProps={{
-                                                                                    textField: {
-                                                                                        variant: "outlined",
-                                                                                        fullWidth: true,
-                                                                                        className: "bg-white"
-                                                                                    }
-                                                                                }}
-                                                                                minDateTime={dayjs().startOf('day')}
-                                                                                ampm={true}
+                                                        {todos
+                                                            .sort((a, b) => {
+                                                                // Push completed items to the end
+                                                                if (a.completed) return 1; 
+                                                                if (b.completed) return -1; 
+                                                                // Push items without due date to the end
+                                                                if (!a.dueDate) return 1;  
+                                                                if (!b.dueDate) return -1; 
+
+                                                                // Compare due dates
+                                                                return new Date(a.dueDate) - new Date(b.dueDate);
+                                                            }).map((todo) => (
+                                                                <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+                                                                    {editingId === todo._id ? (
+                                                                        <div className="p-3 sm:p-4">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={editTitle}
+                                                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                                                className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                             />
-                                                                        </LocalizationProvider>
-                                                                        <div className="flex gap-2 mt-3">
-                                                                            <button
-                                                                                onClick={() => handleUpdateTodo(todo._id)}
-                                                                                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                                                            >
-                                                                                Save
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => setEditingId(null)}
-                                                                                className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                                                            >
-                                                                                Cancel
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="p-3 sm:p-4 shadow-md rounded-lg hover:shadow-lg transition-shadow border border-slate-200">
-                                                                        {/* Mobile layout (<sm breakpoint) */}
-                                                                        <div className="flex flex-col gap-2">
-                                                                            {/* Title row */}
-                                                                            <div className="flex items-center gap-3">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={todo.completed}
-                                                                                    onChange={() => handleToggleTodo(todo._id, todo.completed)}
-                                                                                    className="h-4 sm:h-5 w-4 sm:w-5 rounded border-gray-300 cursor-pointer focus:ring-2 focus:ring-blue-500"
+                                                                            {/* <textarea
+                                                                                value={editDesc}
+                                                                                onChange={(e) => setEditDesc(e.target.value)}
+                                                                                className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                                                rows="2"
+                                                                            /> */}
+                                                                            <MDEditor
+                                                                                value={editDesc}
+                                                                                onChange={setEditDesc}
+                                                                                preview="edit"
+                                                                                height={200}
+                                                                                className="mb-4"
+                                                                                textareaProps={{
+                                                                                    placeholder: "Edit details..."
+                                                                                }}
+                                                                                commands={[
+                                                                                    commands.bold,
+                                                                                    commands.italic,
+                                                                                    // commands.strikethrough,
+                                                                                    // commands.hr,
+                                                                                    commands.title,
+                                                                                    commands.divider,
+                                                                                    commands.quote,
+                                                                                    commands.code,
+                                                                                    commands.codeBlock,
+                                                                                    // commands.image,
+                                                                                    commands.link,
+                                                                                    commands.unorderedListCommand,
+                                                                                    commands.orderedListCommand,
+                                                                                    // toggleCommand
+                                                                                    // commands.checkedListCommand
+                                                                                ]}
+                                                                            />
+                                                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                                <MobileDateTimePicker
+                                                                                    label="Due Date & Time"
+                                                                                    value={editDate}
+                                                                                    onChange={(newValue) => {
+                                                                                        setEditDate(newValue);
+                                                                                    }}
+                                                                                    className="w-full"
+                                                                                    format="DD/MM/YYYY hh:mm A"
+                                                                                    slotProps={{
+                                                                                        textField: {
+                                                                                            variant: "outlined",
+                                                                                            fullWidth: true,
+                                                                                            className: "bg-white"
+                                                                                        }
+                                                                                    }}
+                                                                                    minDateTime={dayjs().startOf('day')}
+                                                                                    ampm={true}
                                                                                 />
-                                                                                <span className={`flex-1 text-base sm:text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                                                                    {todo.title}
-                                                                                </span>
+                                                                            </LocalizationProvider>
+                                                                            <div className="flex gap-2 mt-3">
+                                                                                <button
+                                                                                    onClick={() => handleUpdateTodo(todo._id)}
+                                                                                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
+                                                                                >
+                                                                                    Save
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => setEditingId(null)}
+                                                                                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md font-medium flex items-center gap-1"
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
                                                                             </div>
-                                                                            
-                                                                            {/* Description row */}
-                                                                            {todo.description && (
-                                                                                <p className="ml-7 text-xs sm:text-sm text-gray-600 break-words whitespace-pre-wrap max-w-full overflow-hidden">
-                                                                                    {todo.description}
-                                                                                </p>
-                                                                            )}
-                                                                            
-                                                                            {/* Actions row */}
-                                                                            <div className="ml-7 flex flex-row items-center justify-between gap-2">
-                                                                                <div className={`text-xs sm:text-sm text-gray-800 border rounded-md p-1.5 sm:p-2 select-none ${
-                                                                                    todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300' : 'bg-gradient-to-r from-orange-100 to-red-200'
-                                                                                }`}>
-                                                                                    Due: {todo.dueDate ? new Date(todo.dueDate).toLocaleString('en-US', {
-                                                                                        year: 'numeric',
-                                                                                        month: 'short',
-                                                                                        day: 'numeric',
-                                                                                        hour: '2-digit',
-                                                                                        minute: '2-digit'
-                                                                                    }) : 'No due date'}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="p-3 sm:p-4 shadow-md rounded-lg hover:shadow-lg transition-shadow border border-slate-200">
+                                                                            {/* Mobile layout (<sm breakpoint) */}
+                                                                            <div className="flex flex-col gap-2">
+                                                                                {/* Title row */}
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <Checkbox color="success"
+                                                                                        checked={todo.completed}
+                                                                                        onChange={() => handleToggleTodo(todo._id, todo.completed)} />
+                                                                                    <span className={`flex-1 text-base sm:text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                                                                        {todo.title}
+                                                                                    </span>
                                                                                 </div>
-                                                                                <div className="flex gap-2">
-                                                                                    <button
-                                                                                        onClick={() => handleEdit(todo)}
-                                                                                        className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
-                                                                                    >
-                                                                                        <Pencil size={20} />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={() => handleDeleteTodo(todo._id)}
-                                                                                        className="p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-                                                                                    >
-                                                                                        <Trash size={20} />
-                                                                                    </button>
+
+                                                                                {todo.description && (
+                                                                                    <div className="ml-14 prose prose-sm max-w-none">
+                                                                                        <MDEditor.Markdown
+                                                                                            source={todo.description}
+                                                                                            className="text-gray-600 break-words whitespace-pre-wrap"
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* Actions row */}
+                                                                                <div className="ml-14 flex flex-row items-center justify-between gap-2">
+                                                                                    <div className={`text-xs sm:text-sm text-gray-800 border rounded-md p-1.5 sm:p-2 select-none ${todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300' : 'bg-gradient-to-r from-orange-100 to-red-200'
+                                                                                        }`}>
+                                                                                        {todo.dueDate ?
+                                                                                            (new Date(todo.dueDate).getTime() > new Date().getTime()
+                                                                                                ? "Due:" : "Overdue:") : "null"} {todo.dueDate ? new Date(todo.dueDate).toLocaleString('en-US', {
+                                                                                                    year: 'numeric',
+                                                                                                    month: 'short',
+                                                                                                    day: 'numeric',
+                                                                                                    hour: '2-digit',
+                                                                                                    minute: '2-digit'
+                                                                                                }) : 'No due date'}
+                                                                                    </div>
+                                                                                    <div className="flex gap-2">
+                                                                                        <button
+                                                                                            onClick={() => handleEdit(todo)}
+                                                                                            className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
+                                                                                        >
+                                                                                            <Pencil size={20} />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => handleDeleteTodo(todo._id)}
+                                                                                            className="p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
+                                                                                        >
+                                                                                            <Trash size={20} />
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                )}
-                                                            </li>
-                                                        ))}
+                                                                    )}
+                                                                </li>
+                                                            ))}
                                                     </ul>
                                                 )}
                                             </div>

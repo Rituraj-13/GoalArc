@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useLocation } from "react-router-dom";
 
 function Header({ setIsAuthenticated }) {
+    const location = useLocation();
     const handleLogout = () => {
         localStorage.removeItem('todoToken');
         setIsAuthenticated(false);
@@ -15,12 +17,13 @@ function Header({ setIsAuthenticated }) {
                             <li><a href='/' className='hover:text-gray-300'>Home</a></li>
                             <li><a href='https://github.com/Rituraj-13' className='hover:text-gray-300' target='_blank'>Github</a></li>
                         </ul>
-                        <button
+                        
+                        {location.pathname === '/todos' &&(<button
                             onClick={handleLogout}
                             className="px-4 py-2 bg-red-500 text-white rounded-lg transition-all duration-300 ease-in-out transform hover:bg-red-600 hover:scale-105"
                         >
                             Logout
-                        </button>
+                        </button>)}
                     </nav>
                 </div>
             </header>
