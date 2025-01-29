@@ -1,6 +1,7 @@
-import React, {useRef} from "react"
+import React, { useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import bannerImage from '../assets/bannerImage.png'
+import { Rocket } from "lucide-react";
 
 import {
     Lock,
@@ -50,11 +51,24 @@ const LandingPage = () => {
                     <div className="absolute inset-0 bg-blue-900 opacity-20 z-0 "></div>
                     <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
                         <div className="text-left space-y-8">
+                            {/* <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
+                                <span className="block">GoalArc</span>
+                                <span className="block text-blue-300 ">Bridge Your Tasks to Triumph
+                                    <span>
+                                        <Rocket size={48}/>
+                                    </span>
+                                </span>
+                            </h1> */}
                             <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
                                 <span className="block">GoalArc</span>
-                                <span className="block text-blue-300">Bridge Your Tasks to Triumph</span>
+                                <span className="block text-blue-300">
+                                    Bridge Your Tasks to Triumph
+                                    <span className="inline-block align-middle ml-2 text-blue-100 mb-4">
+                                        <Rocket size={58} />
+                                    </span>
+                                </span>
                             </h1>
-                            <p className="text-xl md:text-2xl font-light max-w-xl">
+                            <p className="text-xl md:text-2xl font-light max-w-xl text-indigo-100">
                                 Stay organized, boost productivity, and never miss a deadline with GoalArc's innovative task management
                                 system.
                             </p>
@@ -93,7 +107,7 @@ const LandingPage = () => {
                         <FeatureCard
                             Icon={Lock}
                             title="Secure Authentication"
-                            description="Protect your personal todo lists with our robust user management system."
+                            description="Protect your personal Tasks with our robust user management system."
                         />
                         <FeatureCard
                             Icon={WandSparkles}

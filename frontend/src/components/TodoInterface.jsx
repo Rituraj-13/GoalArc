@@ -21,7 +21,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [editTitle, setEditTitle] = useState('');
     const [editDesc, setEditDesc] = useState('');
     const [quote, setQuote] = useState("");
-    const [selectedDate, setSelectedDate] = useState(dayjs());
+    const [selectedDate, setSelectedDate] = useState(dayjs().add(1, 'hour'));
     const [editDate, setEditDate] = useState(dayjs());
 
     // Fetch todos on component mount
@@ -81,10 +81,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
             // Fetch updated todos
             await fetchTodos();
-            toast.success('Todo Added Successfully!');
+            toast.success('Task Added Successfully!');
         } catch (error) {
-            console.error('Error adding todo:', error);
-            toast.error('Failed to add todo!');
+            console.error('Error adding Task:', error);
+            toast.error('Failed to create Task!');
         }
     };
 
@@ -101,7 +101,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             );
             fetchTodos();
         } catch (error) {
-            toast.error('Failed to Update Todo !');
+            toast.error('Failed to Update Task !');
         }
     };
 
@@ -116,7 +116,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             fetchTodos();
             toast.success('Successfully Deleted !');
         } catch (error) {
-            toast.error('Failed to Delete Todo !');
+            toast.error('Failed to Delete Task !');
         }
     };
 
@@ -146,7 +146,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             fetchTodos();
             toast.success('Successfully Updated !');
         } catch (error) {
-            toast.error('Failed to update todo');
+            toast.error('Failed to update Task');
         }
     };
 
@@ -258,7 +258,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                 <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
                                     font-sans tracking-wide via-violet-200 flex justify-center text-violet-900 select-none">
-                                    Create New Task
+                                    {/* Create New Task */}
+                                    Plan Your Day ✍️
                                 </h3>
                                 <div className="p-6">
                                     <form onSubmit={handleAddTodo} className="space-y-4">
@@ -334,7 +335,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                 <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
                                     bg-gradient-to-r from-blue-500/5 to-indigo-500/5
                                     font-sans tracking-wide flex justify-center via-violet-200 text-violet-900 select-none">
-                                    Your Tasks
+                                    {/* Your Tasks */}
+                                    Tasks to get Done 🎯
                                 </h3>
                                 <div className="p-3 sm:p-6">
                                     <div className="h-[calc(100vh-375px)] overflow-y-auto pr-2
