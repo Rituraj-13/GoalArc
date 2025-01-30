@@ -1,10 +1,69 @@
 import express from "express";
 import Todo from "../models/Todo.js";
+import Streak from "../models/Streak.js";
 import AuthMiddleware from "../Middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
 router.use(AuthMiddleware);
+
+const isSameDay = (date1, date2) => {
+    return (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+    );
+};
+
+const isConsecutiveDay = (date1, date2) => {
+    const dayDiff = Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+    return dayDiff === 1;
+}
+
+// Streak route 
+router.get('/streak', async (req, res) => {
+    try {
+        let streak = await Streak.findOne({ user: req.userId });
+        if (!streak) {
+            streak = new Streak({ user: req.userId });
+            await streak.save();
+        }
+        res.json(streak);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch Streak !' });
+    }
+})
+
+router.get('/check-streak', async (req, res) => {
+    try {
+        const streak = await Streak.findOne({ user: req.user.id });
+        if (!streak) {
+            return res.status(404).json({ message: 'Streak not found' });
+        }
+
+        const userTimeZone = streak.timezone;
+        const now = new Date().toLocaleString('en-US', { timeZone: userTimeZone });
+        const lastDate = streak.lastCompletionDate ? 
+            new Date(streak.lastCompletionDate).toLocaleString('en-US', { timeZone: userTimeZone }) : null;
+
+        if (lastDate) {
+            const daysSinceLastCompletion = Math.floor(
+                (new Date(now) - new Date(lastDate)) / (1000 * 60 * 60 * 24)
+            );
+
+            if (daysSinceLastCompletion > 1) {
+                streak.currentStreak = 0;
+                streak.lastCompletionDate = null;
+                await streak.save();
+            }
+        }
+
+        res.json(streak);
+    } catch (error) {
+        console.error('Streak check error:', error);
+        res.status(500).json({ message: 'Failed to check streak' });
+    }
+});
 
 // Get all todos for a logged in user
 router.get('/', async (req, res) => {
@@ -43,6 +102,30 @@ router.post('/', async (req, res) => {
 });
 
 // Update todo
+// router.put('/:id', async (req, res) => {
+//     try {
+//         const { title, description, completed, dueDate } = req.body;
+//         const todoId = req.params.id;
+
+//         const todo = await Todo.findOne({ _id: todoId, user: req.userId });
+
+//         if (!todo) {
+//             return res.status(404).json({ error: 'Todo not found' });
+//         }
+
+//         if (title) todo.title = title;
+//         if (description !== undefined) todo.description = description;
+//         if (dueDate !== undefined) todo.dueDate = dueDate;
+//         if (completed !== undefined) todo.completed = completed;
+
+//         const updatedTodo = await todo.save();
+//         res.json(updatedTodo);
+//     } catch (error) {
+//         res.status(500).json({ error: 'Error updating todo' });
+//     }
+// });
+
+// Update todo
 router.put('/:id', async (req, res) => {
     try {
         const { title, description, completed, dueDate } = req.body;
@@ -54,13 +137,55 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Todo not found' });
         }
 
+        // Handle streak logic when completion status changes
+        if (completed !== undefined && completed !== todo.completed && completed) {
+            let streak = await Streak.findOne({ user: req.userId });
+            if (!streak) {
+                streak = new Streak({ user: req.userId });
+            }
+
+            const now = new Date();
+            const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
+            const isCompletedBeforeDue = !dueDate || now <= dueDate;
+
+            if (isCompletedBeforeDue) {
+                if (!streak.lastCompletionDate) {
+                    streak.currentStreak = 1;
+                } else {
+                    const lastDate = new Date(streak.lastCompletionDate);
+
+                    if (isSameDay(now, lastDate)) {
+                        // Keep current streak for same day completions
+                    } else if (isConsecutiveDay(lastDate, now)) {
+                        streak.currentStreak += 1;
+                    } else {
+                        streak.currentStreak = 0;
+                    }
+                }
+
+                streak.lastCompletionDate = now;
+                if (streak.currentStreak > 0) {
+                    streak.highestStreak = Math.max(streak.currentStreak, streak.highestStreak);
+                }
+                await streak.save();
+            }
+        }
+
+        // Update todo fields
         if (title) todo.title = title;
         if (description !== undefined) todo.description = description;
         if (dueDate !== undefined) todo.dueDate = dueDate;
         if (completed !== undefined) todo.completed = completed;
 
         const updatedTodo = await todo.save();
-        res.json(updatedTodo);
+
+        // Return streak info if completion status changed
+        if (completed !== undefined && completed !== todo.completed) {
+            const streak = await Streak.findOne({ user: req.userId });
+            return res.json({ todo: updatedTodo, streak });
+        }
+
+        res.json({ todo: updatedTodo });
     } catch (error) {
         res.status(500).json({ error: 'Error updating todo' });
     }

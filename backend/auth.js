@@ -5,11 +5,14 @@ import mongoose from "mongoose";
 import cors from "cors";
 import router from "./routes/todo.js"
 import dotenv from 'dotenv';
+import streakCheck from "./Middlewares/StreakCheck.js";
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors())
+app.use(streakCheck);
 app.use('/todos', router);
 const port = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
