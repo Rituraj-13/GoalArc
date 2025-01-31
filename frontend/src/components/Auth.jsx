@@ -3,51 +3,32 @@ import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import Header from './Header';
 
-// Add setIsAuthenticated prop
 const AuthForm = ({ setIsAuthenticated }) => {
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordsMatch, setPasswordsMatch] = useState(true);
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     const endpoint = isSignUp ? "signup" : "signin";
-    //     const backendUrl = `http://localhost:3000/${endpoint}`;
-    //     try {
-    //         const response = await axios.post(backendUrl,
-    //             {
-    //                 name: email,
-    //                 pw: password
-    //             },
-    //             {
-    //                 headers: {
-    //                     'Content-Type': 'application/json'
-    //                 }
-    //             }
-    //         );
-
-    //         if (response.data.token) {
-    //             // Store token in the local storage
-    //             localStorage.setItem('todoToken', response.data.token);
-    //             setIsAuthenticated(true);
-    //             toast.success(response.data.msg);
-    //         } else if (response.data.userCheck === "true") {
-    //             toast.error(response.data.msg);
-    //         }
-
-    //     } catch (error) {
-    //         const errorMessage = error.response?.data?.msg || 'An error occurred during signup';
-    //         toast.error(errorMessage);
-    //         console.error('Error during signup:', error.response?.data || error.message);
-    //     }
-    // };
+    const confirmPasswordCheck = () => {
+        const match = password === confirmPassword;
+        setPasswordsMatch(match);
+        if (!match) {
+            toast.error("Passwords do not match!");
+            return false;
+        }
+        return true;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (isSignUp && !confirmPasswordCheck()) {
+            return;
+        }
+
         const endpoint = isSignUp ? "signup" : "signin";
         const backendUrl = `http://localhost:3000/${endpoint}`;
-
-        // Show loading toast
         const loadingToast = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
 
         try {
@@ -89,6 +70,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
             });
         }
     };
+
     return (
         <>
             <Header />
@@ -132,6 +114,26 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
                                 </div>
+                                {isSignUp && (
+                                    <div>
+                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                                            Confirm Password
+                                        </label>
+                                        <input
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            type="password"
+                                            required
+                                            className={`mt-1 block w-full px-3 py-2 border ${
+                                                !passwordsMatch ? 'border-red-500' : 'border-gray-300'
+                                            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                            placeholder="Retype Password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
                                 <div>
                                     <button
                                         type="submit"
