@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { sendVerificationEmail } from '../utils/emailVerification';
 
 const OTPVerification = ({ email, onVerificationComplete }) => {
     const [otp, setOtp] = useState('');
@@ -44,7 +43,7 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
             if (verifyResponse.data.msg === 'Email verified successfully') {
                 // Get the stored password from localStorage
                 const password = localStorage.getItem('tempSignupPassword');
-                
+
                 // Attempt to sign in
                 const loginResponse = await axios.post('http://localhost:3000/signin', {
                     name: email,
@@ -68,54 +67,70 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
 
     const resendOTP = async () => {
         try {
-            const response = await axios.post('http://localhost:3000/resend-otp', { email });
-            
-            // Send the new OTP via email
-            await sendVerificationEmail(email, response.data.otp);
-            
-            toast.success('New OTP sent successfully');
-            startTimer(); // Restart timer after resend
+            await axios.post('http://localhost:3000/resend-otp', { email });
+            toast.success('New OTP sent to your email');
+            startTimer();
         } catch (error) {
             toast.error('Failed to resend OTP');
         }
     };
 
     return (
-        <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Email Verification</h2>
-            <p className="mb-4">Please enter the OTP sent to {email}</p>
-            <form onSubmit={verifyOTP} className="space-y-4">
-                <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter OTP"
-                    className="w-full px-3 py-2 border rounded-md"
-                    maxLength={6}
-                />
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                    {loading ? 'Verifying...' : 'Verify OTP'}
-                </button>
-            </form>
-            <div className="mt-4 flex items-center justify-between">
-                <button
-                    onClick={resendOTP}
-                    disabled={isResendDisabled}
-                    className={`text-blue-600 hover:text-blue-800 ${
-                        isResendDisabled ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                >
-                    Resend OTP
-                </button>
-                {isResendDisabled && (
-                    <span className="text-gray-500">
-                        Resend in {timer}s
-                    </span>
-                )}
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white p-6 sm:p-8 rounded-lg shadow-md">
+                <div className="text-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Email Verification</h2>
+                    <p className="text-sm sm:text-base text-gray-600 mb-2">
+                        Please enter the OTP sent to <span className="font-medium">{email}</span>
+                    </p>
+                    <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded-md mb-4">
+                        ⚠️ If you don't see the email in your inbox, please check your spam folder
+                    </div>
+                </div>
+
+                <form onSubmit={verifyOTP} className="mt-8 space-y-6">
+                    <div>
+                        <input
+                            type="text"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="Enter 6-digit OTP"
+                            className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm text-center tracking-widest"
+                            maxLength={6}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={loading || otp.length !== 6}
+                            className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${loading || otp.length !== 6
+                                    ? 'bg-indigo-400 cursor-not-allowed'
+                                    : 'bg-indigo-600 hover:bg-indigo-700'
+                                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200`}
+                        >
+                            {loading ? 'Verifying...' : 'Verify OTP'}
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                        <button
+                            type="button"
+                            onClick={resendOTP}
+                            disabled={isResendDisabled}
+                            className={`text-indigo-600 hover:text-indigo-500 ${isResendDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                        >
+                            Resend OTP
+                        </button>
+                        {isResendDisabled && (
+                            <span className="text-gray-500">
+                                Resend in {timer}s
+                            </span>
+                        )}
+                    </div>
+                </form>
             </div>
         </div>
     );

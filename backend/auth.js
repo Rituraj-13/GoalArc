@@ -6,6 +6,7 @@ import cors from "cors";
 import router from "./routes/todo.js"
 import dotenv from 'dotenv';
 import streakCheck from "./Middlewares/StreakCheck.js";
+import { sendVerificationEmail } from './services/emailService.js';
 
 dotenv.config();
 
@@ -31,6 +32,8 @@ const userSchema = new mongoose.Schema({
 })
 const UserObject = new mongoose.model('userCreds', userSchema);
 
+// First, create a temporary storage for pending registrations
+const pendingRegistrations = new Map(); // This will store temporary user data
 
 const hashingPassword = async (passwordToHash) => {
     try {
@@ -44,7 +47,7 @@ const hashingPassword = async (passwordToHash) => {
 // ! Hit the backend early to prevent coldstart issue !
 app.get('/hitBackend', async (req, res) => {
     return res.status(200).json({
-        msg : "UP"
+        msg: "UP"
     })
 })
 
@@ -65,29 +68,30 @@ app.post('/signup', async (req, res) => {
         const hashPw = await hashingPassword(password);
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        const signedUpUser = await new UserObject({
-            username: username,
+        // Store the user data temporarily instead of saving to database
+        pendingRegistrations.set(username, {
+            username,
             password: hashPw,
             verificationOTP: otp,
             otpExpiry: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiry
         });
-        await signedUpUser.save();
 
-        // Return OTP with response for email sending
+        // Send verification email
+        await sendVerificationEmail(username, otp);
+
         res.json({
-            userCreated: true,
+            userCreated: false,
             userCheck: false,
-            msg: "User Created Successfully!",
-            otp: otp
+            msg: "Please check your email for verification code.",
         });
     } catch (error) {
-        console.error('Signup error:', error);  // Add error logging
+        console.error('Signup error:', error);
         res.status(500).json({
             error: "Something is up with our Server !!",
             details: error.message
         });
     }
-})
+});
 
 app.post('/signin', async (req, res) => {
     const username = req.body.name;
@@ -132,30 +136,34 @@ app.post('/signin', async (req, res) => {
 
 app.post('/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
-    
+
     try {
-        const user = await UserObject.findOne({ username: email });
-        
-        if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
+        const pendingUser = pendingRegistrations.get(email);
+
+        if (!pendingUser) {
+            return res.status(404).json({ msg: 'Registration session expired or not found' });
         }
 
-        if (user.isVerified) {
-            return res.status(400).json({ msg: 'Email already verified' });
-        }
-
-        if (user.verificationOTP !== otp) {
+        if (pendingUser.verificationOTP !== otp) {
             return res.status(400).json({ msg: 'Invalid OTP' });
         }
 
-        if (user.otpExpiry < new Date()) {
+        if (pendingUser.otpExpiry < new Date()) {
+            // Clean up expired registration
+            pendingRegistrations.delete(email);
             return res.status(400).json({ msg: 'OTP expired' });
         }
 
-        user.isVerified = true;
-        user.verificationOTP = null;
-        user.otpExpiry = null;
-        await user.save();
+        // Create and save the verified user
+        const newUser = new UserObject({
+            username: pendingUser.username,
+            password: pendingUser.password,
+            isVerified: true
+        });
+        await newUser.save();
+
+        // Clean up the pending registration
+        pendingRegistrations.delete(email);
 
         res.json({ msg: 'Email verified successfully' });
     } catch (error) {
@@ -165,21 +173,25 @@ app.post('/verify-otp', async (req, res) => {
 
 app.post('/resend-otp', async (req, res) => {
     const { email } = req.body;
-    
+
     try {
-        const user = await UserObject.findOne({ username: email });
-        if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
+        const pendingUser = pendingRegistrations.get(email);
+        if (!pendingUser) {
+            return res.status(404).json({ msg: 'Registration session expired or not found' });
         }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.verificationOTP = otp;
-        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
-        await user.save();
 
-        res.json({ 
-            msg: 'OTP resent successfully',
-            otp: otp // Add this to send OTP back
+        // Update the pending registration with new OTP
+        pendingUser.verificationOTP = otp;
+        pendingUser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+        pendingRegistrations.set(email, pendingUser);
+
+        // Send new verification email
+        await sendVerificationEmail(email, otp);
+
+        res.json({
+            msg: 'OTP resent successfully'
         });
     } catch (error) {
         res.status(500).json({ msg: 'Server error', error: error.message });

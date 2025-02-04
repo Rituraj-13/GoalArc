@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import Header from './Header';
-import { sendVerificationEmail, generateOTP } from '../utils/emailVerification';
 import OTPVerification from './OTPVerification';
 
 const AuthForm = ({ setIsAuthenticated }) => {
@@ -48,12 +47,9 @@ const AuthForm = ({ setIsAuthenticated }) => {
             if (isSignUp) {
                 // Store password temporarily for auto sign-in after verification
                 localStorage.setItem('tempSignupPassword', password);
-                
-                // Use the OTP from backend response
-                const backendOTP = response.data.otp;
-                await sendVerificationEmail(email, backendOTP);
                 setRegisteredEmail(email);
                 setShowOTPVerification(true);
+                toast.success('Please check your email for verification code');
             } else if (response.data.token) {
                 localStorage.setItem('todoToken', response.data.token);
                 setIsAuthenticated(true);
