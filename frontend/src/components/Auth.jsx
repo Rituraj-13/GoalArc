@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import Header from './Header';
+import { sendVerificationEmail, generateOTP } from '../utils/emailVerification';
+import OTPVerification from './OTPVerification';
 
 const AuthForm = ({ setIsAuthenticated }) => {
     const [isSignUp, setIsSignUp] = useState(false);
@@ -9,6 +11,8 @@ const AuthForm = ({ setIsAuthenticated }) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordsMatch, setPasswordsMatch] = useState(true);
+    const [showOTPVerification, setShowOTPVerification] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState('');
 
     const confirmPasswordCheck = () => {
         const match = password === confirmPassword;
@@ -36,127 +40,127 @@ const AuthForm = ({ setIsAuthenticated }) => {
                 {
                     name: email,
                     pw: password
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
                 }
             );
 
-            // Dismiss loading toast
             toast.dismiss(loadingToast);
 
-            if (response.data.token) {
+            if (isSignUp) {
+                // Store password temporarily for auto sign-in after verification
+                localStorage.setItem('tempSignupPassword', password);
+                
+                // Use the OTP from backend response
+                const backendOTP = response.data.otp;
+                await sendVerificationEmail(email, backendOTP);
+                setRegisteredEmail(email);
+                setShowOTPVerification(true);
+            } else if (response.data.token) {
                 localStorage.setItem('todoToken', response.data.token);
                 setIsAuthenticated(true);
-                // Success toast with better styling
-                toast.success(response.data.msg, {
-                    duration: 3000,
-                });
-            } else if (response.data.userCheck === "true") {
-                toast.error(response.data.msg, {
-                    duration: 4000
-                });
+                toast.success(response.data.msg);
             }
-
         } catch (error) {
-            // Dismiss loading toast
             toast.dismiss(loadingToast);
-
-            const errorMessage = error.response?.data?.msg || 'An error occurred during signup';
-            toast.error(errorMessage, {
-                duration: 4000,
-            });
+            toast.error(error.response?.data?.msg || 'An error occurred');
         }
     };
 
     return (
         <>
             <Header />
-            <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full space-y-8">
-                    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                        <div className="px-6 py-8">
-                            <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">
-                                {isSignUp ? 'Create your account' : 'Sign in to your account'}
-                            </h2>
-                            <form className="space-y-6" onSubmit={handleSubmit}>
-                                <div>
-                                    <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
-                                        Email address
-                                    </label>
-                                    <input
-                                        id="email-address"
-                                        name="email"
-                                        type="email"
-                                        autoComplete="email"
-                                        required
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                        placeholder="Email address"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                        Password
-                                    </label>
-                                    <input
-                                        id="password"
-                                        name="password"
-                                        type="password"
-                                        autoComplete="current-password"
-                                        required
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                        placeholder="Password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                </div>
-                                {isSignUp && (
+            {showOTPVerification ? (
+                <OTPVerification 
+                    email={registeredEmail}
+                    onVerificationComplete={() => {
+                        setShowOTPVerification(false);
+                        setIsAuthenticated(true);
+                    }}
+                />
+            ) : (
+                <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-md w-full space-y-8">
+                        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                            <div className="px-6 py-8">
+                                <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">
+                                    {isSignUp ? 'Create your account' : 'Sign in to your account'}
+                                </h2>
+                                <form className="space-y-6" onSubmit={handleSubmit}>
                                     <div>
-                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                                            Confirm Password
+                                        <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
+                                            Email address
                                         </label>
                                         <input
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            type="password"
+                                            id="email-address"
+                                            name="email"
+                                            type="email"
+                                            autoComplete="email"
                                             required
-                                            className={`mt-1 block w-full px-3 py-2 border ${
-                                                !passwordsMatch ? 'border-red-500' : 'border-gray-300'
-                                            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                                            placeholder="Retype Password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Email address"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                         />
                                     </div>
-                                )}
+                                    <div>
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                            Password
+                                        </label>
+                                        <input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            autoComplete="current-password"
+                                            required
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            placeholder="Password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </div>
+                                    {isSignUp && (
+                                        <div>
+                                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                                                Confirm Password
+                                            </label>
+                                            <input
+                                                id="confirmPassword"
+                                                name="confirmPassword"
+                                                type="password"
+                                                required
+                                                className={`mt-1 block w-full px-3 py-2 border ${
+                                                    !passwordsMatch ? 'border-red-500' : 'border-gray-300'
+                                                } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                                placeholder="Retype Password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
 
-                                <div>
-                                    <button
-                                        type="submit"
-                                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                    >
-                                        {isSignUp ? 'Sign Up' : 'Sign In'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                            <button
-                                onClick={() => setIsSignUp(!isSignUp)}
-                                className="w-full text-center font-medium text-indigo-600 hover:text-indigo-500"
-                            >
-                                {isSignUp
-                                    ? 'Already have an account? Sign In'
-                                    : "Don't have an account? Sign Up"}
-                            </button>
+                                    <div>
+                                        <button
+                                            type="submit"
+                                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        >
+                                            {isSignUp ? 'Sign Up' : 'Sign In'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                                <button
+                                    onClick={() => setIsSignUp(!isSignUp)}
+                                    className="w-full text-center font-medium text-indigo-600 hover:text-indigo-500"
+                                >
+                                    {isSignUp
+                                        ? 'Already have an account? Sign In'
+                                        : "Don't have an account? Sign Up"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </>
     );
 };

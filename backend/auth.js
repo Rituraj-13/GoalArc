@@ -21,7 +21,13 @@ mongoose.connect(DB_URL);
 
 const userSchema = new mongoose.Schema({
     username: String,
-    password: String
+    password: String,
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationOTP: String,
+    otpExpiry: Date
 })
 const UserObject = new mongoose.model('userCreds', userSchema);
 
@@ -57,25 +63,23 @@ app.post('/signup', async (req, res) => {
         }
 
         const hashPw = await hashingPassword(password);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         const signedUpUser = await new UserObject({
             username: username,
-            password: hashPw
+            password: hashPw,
+            verificationOTP: otp,
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiry
         });
         await signedUpUser.save();
 
-        // Generate JWT Token (using userId to create the token)
-        const token = await jwt.sign(
-            { userId: signedUpUser._id },
-            JWT_SECRET
-        )
-
+        // Return OTP with response for email sending
         res.json({
             userCreated: true,
             userCheck: false,
-            msg: "User Created Successfully !",
-            token
-        })
+            msg: "User Created Successfully!",
+            otp: otp
+        });
     } catch (error) {
         console.error('Signup error:', error);  // Add error logging
         res.status(500).json({
@@ -125,6 +129,62 @@ app.post('/signin', async (req, res) => {
     }
 
 })
+
+app.post('/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    
+    try {
+        const user = await UserObject.findOne({ username: email });
+        
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ msg: 'Email already verified' });
+        }
+
+        if (user.verificationOTP !== otp) {
+            return res.status(400).json({ msg: 'Invalid OTP' });
+        }
+
+        if (user.otpExpiry < new Date()) {
+            return res.status(400).json({ msg: 'OTP expired' });
+        }
+
+        user.isVerified = true;
+        user.verificationOTP = null;
+        user.otpExpiry = null;
+        await user.save();
+
+        res.json({ msg: 'Email verified successfully' });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+});
+
+app.post('/resend-otp', async (req, res) => {
+    const { email } = req.body;
+    
+    try {
+        const user = await UserObject.findOne({ username: email });
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.verificationOTP = otp;
+        user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+        await user.save();
+
+        res.json({ 
+            msg: 'OTP resent successfully',
+            otp: otp // Add this to send OTP back
+        });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+});
 
 app.listen(port, () => {
     console.log(`Listening on port no ${port}`)
