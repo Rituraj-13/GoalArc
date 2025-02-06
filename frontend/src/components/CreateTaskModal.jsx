@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogPanel, Transition } from '@headlessui/react';
+import { Dialog, DialogPanel, Transition, TransitionChild } from '@headlessui/react';
 import { Calendar, AlignLeft } from 'lucide-react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -39,7 +39,7 @@ const CreateTaskModal = ({
                 className="relative z-[60]"
             >
                 {/* Backdrop */}
-                <Transition.Child
+                <TransitionChild
                     as={React.Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
@@ -49,11 +49,12 @@ const CreateTaskModal = ({
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-                </Transition.Child>
+                </TransitionChild>
+
 
                 <div className="fixed inset-0 flex items-center justify-center p-4">
                     {/* Modal panel */}
-                    <Transition.Child
+                    <TransitionChild
                         as={React.Fragment}
                         enter="ease-out duration-300"
                         enterFrom="opacity-0 scale-95 translate-y-4"
@@ -71,7 +72,7 @@ const CreateTaskModal = ({
                                             type="text"
                                             value={newTodo}
                                             onChange={(e) => setNewTodo(e.target.value)}
-                                            className="w-full px-4 py-3 text-lg focus:outline-none"
+                                            className="w-full px-4 py-3 text-lg focus:outline-none rounded-t-xl"
                                             placeholder="Create new task"
                                             required
                                         />
@@ -159,7 +160,7 @@ const CreateTaskModal = ({
                                 </div>
                             </form>
                         </DialogPanel>
-                    </Transition.Child>
+                    </TransitionChild>
                 </div>
             </Dialog>
         </Transition>

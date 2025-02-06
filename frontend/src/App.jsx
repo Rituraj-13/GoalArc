@@ -7,6 +7,7 @@ import TodoInterface from './components/TodoInterface'
 import axios from 'axios';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
+import { ThemeProvider } from './components/ThemeProvider'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,22 +34,24 @@ export default function App({ children }) {
 
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
 
-        <Route path="/auth" element={
-          isAuthenticated ?
-            <Navigate to="/todos" /> :
-            <AuthForm setIsAuthenticated={setIsAuthenticated} />
-        } />
+          <Route path="/auth" element={
+            isAuthenticated ?
+              <Navigate to="/todos" /> :
+              <AuthForm setIsAuthenticated={setIsAuthenticated} />
+          } />
 
-        <Route path="/todos" element={
-          isAuthenticated ?
-            <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
-            <Navigate to="/auth" />
-        } />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/todos" element={
+            isAuthenticated ?
+              <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
+              <Navigate to="/auth" />
+          } />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
