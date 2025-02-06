@@ -101,10 +101,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
             // Fetch updated todos
             await fetchTodos();
-            toast.success('Task Added Successfully!');
+            toast.success('Task added', { duration: 2000 });
         } catch (error) {
-            console.error('Error adding Task:', error);
-            toast.error('Failed to create Task!');
+            toast.error('Failed to add task', { duration: 3000 });
         }
     };
 
@@ -125,9 +124,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             }
 
             fetchTodos();
-            toast.success("Task Updated Successfully !");
+            toast.success('Task updated', { duration: 2000 });
         } catch (error) {
-            toast.error('Failed to Update Task !');
+            toast.error('Update failed', { duration: 3000 });
         }
     };
 
@@ -140,9 +139,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 }
             });
             fetchTodos();
-            toast.success('Successfully Deleted !');
+            toast.success('Task deleted', { duration: 2000 });
         } catch (error) {
-            toast.error('Failed to Delete Task !');
+            toast.error('Delete failed', { duration: 3000 });
         }
     };
 
@@ -170,9 +169,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             );
             setEditingId(null);
             fetchTodos();
-            toast.success('Successfully Updated !');
+            toast.success('Task updated', { duration: 2000 });
         } catch (error) {
-            toast.error('Failed to update Task');
+            toast.error('Update failed', { duration: 3000 });
         }
     };
 
@@ -227,25 +226,23 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         execute: async (state, api) => {
             try {
                 if (!newTodo) {
-                    toast.error('Retry by filling the Title !');
+                    toast.error('Title required', { duration: 2000 });
                     return;
                 }
-                // Show loading state
-                toast.loading('Generating Description..⌛');
+                const loadingToastId = toast.loading('Generating...');
 
                 // Get AI response
                 const aiDesc = await AIResponse(newTodo);
-
+                
                 // Set the AI generated description in the MDEditor
                 setNewDesc(aiDesc);
-
+                
                 // Dismiss loading toast and show success
-                toast.dismiss();
-                toast.success('Description generated!');
+                toast.dismiss(loadingToastId);
+                toast.success('Description ready', { duration: 2000 });
             } catch (error) {
                 toast.dismiss();
-                toast.error('Failed to generate description');
-                console.error('Error:', error);
+                toast.error('Generation failed', { duration: 3000 });
             }
         },
     };

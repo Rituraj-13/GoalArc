@@ -13,10 +13,9 @@ function Header({ setIsAuthenticated, currentStreakData, bestStreakData }) {
         localStorage.removeItem('todoToken');
         setIsAuthenticated(false);
         navigate('/');
-        toast.success("Successfully logged out !", {
-            duration: 4000
-        })
-
+        toast.success('Logged out', {
+            duration: 2000
+        });
     };
     return (
         <header className='bg-gradient-to-r from-blue-600 to-blue-900 text-white p-2 shadow-md'>

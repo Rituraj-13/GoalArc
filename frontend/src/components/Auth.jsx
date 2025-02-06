@@ -25,14 +25,14 @@ const AuthForm = ({ setIsAuthenticated }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (isSignUp && !confirmPasswordCheck()) {
             return;
         }
 
         const endpoint = isSignUp ? "signup" : "signin";
         const backendUrl = `http://localhost:3000/${endpoint}`;
-        const loadingToast = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
+        const loadingToastId = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
 
         try {
             const response = await axios.post(backendUrl,
@@ -42,22 +42,21 @@ const AuthForm = ({ setIsAuthenticated }) => {
                 }
             );
 
-            toast.dismiss(loadingToast);
+            toast.dismiss(loadingToastId);
 
             if (isSignUp) {
-                // Store password temporarily for auto sign-in after verification
                 localStorage.setItem('tempSignupPassword', password);
                 setRegisteredEmail(email);
                 setShowOTPVerification(true);
-                toast.success('Please check your email for verification code');
+                toast.success('Check your email', { duration: 3000 });
             } else if (response.data.token) {
                 localStorage.setItem('todoToken', response.data.token);
                 setIsAuthenticated(true);
-                toast.success(response.data.msg);
+                toast.success('Welcome back!', { duration: 2000 });
             }
         } catch (error) {
-            toast.dismiss(loadingToast);
-            toast.error(error.response?.data?.msg || 'An error occurred');
+            toast.dismiss(loadingToastId);
+            toast.error(error.response?.data?.msg || 'Something went wrong', { duration: 3000 });
         }
     };
 
@@ -65,7 +64,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
         <>
             <Header />
             {showOTPVerification ? (
-                <OTPVerification 
+                <OTPVerification
                     email={registeredEmail}
                     onVerificationComplete={() => {
                         setShowOTPVerification(false);
@@ -123,9 +122,8 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                 name="confirmPassword"
                                                 type="password"
                                                 required
-                                                className={`mt-1 block w-full px-3 py-2 border ${
-                                                    !passwordsMatch ? 'border-red-500' : 'border-gray-300'
-                                                } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                                className={`mt-1 block w-full px-3 py-2 border ${!passwordsMatch ? 'border-red-500' : 'border-gray-300'
+                                                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                                                 placeholder="Retype Password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}

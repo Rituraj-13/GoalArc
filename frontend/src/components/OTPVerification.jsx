@@ -54,12 +54,12 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
                     localStorage.setItem('todoToken', loginResponse.data.token);
                     // Remove the temporary password
                     localStorage.removeItem('tempSignupPassword');
-                    toast.success('Email verified and signed in successfully!');
+                    toast.success('Verification successful!', { duration: 3000 });
                     onVerificationComplete();
                 }
             }
         } catch (error) {
-            toast.error(error.response?.data?.msg || 'Verification failed');
+            toast.error(error.response?.data?.msg || 'Invalid OTP', { duration: 3000 });
         } finally {
             setLoading(false);
         }
@@ -68,10 +68,10 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
     const resendOTP = async () => {
         try {
             await axios.post('http://localhost:3000/resend-otp', { email });
-            toast.success('New OTP sent to your email');
+            toast.success('OTP sent!', { duration: 2000 });
             startTimer();
         } catch (error) {
-            toast.error('Failed to resend OTP');
+            toast.error('Failed to send OTP', { duration: 3000 });
         }
     };
 
@@ -106,8 +106,8 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
                             type="submit"
                             disabled={loading || otp.length !== 6}
                             className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${loading || otp.length !== 6
-                                    ? 'bg-indigo-400 cursor-not-allowed'
-                                    : 'bg-indigo-600 hover:bg-indigo-700'
+                                ? 'bg-indigo-400 cursor-not-allowed'
+                                : 'bg-indigo-600 hover:bg-indigo-700'
                                 } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200`}
                         >
                             {loading ? 'Verifying...' : 'Verify OTP'}
