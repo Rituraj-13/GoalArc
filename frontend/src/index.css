@@ -58,3 +58,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add this to ensure MUI components appear above everything */
+.MuiModal-root {
+  z-index: 99999 !important;
+}
+
+.MuiPickersPopper-root {
+  z-index: 99999 !important;
+}
