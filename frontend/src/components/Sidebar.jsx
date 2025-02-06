@@ -11,30 +11,21 @@ import {
   Moon,
   SidebarClose,
   Sun,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ className }) => {
   const { 
-    theme, 
-    setTheme, 
     isDark, 
     setIsDark, 
     isCollapsed, 
-    setIsCollapsed 
+    setIsCollapsed,
   } = useTheme();
   
   const navigate = useNavigate();
   const location = useLocation();
-
-  const themes = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    orange: "bg-orange-500",
-    red: "bg-red-500"
-  };
 
   const isActivePath = (path) => location.pathname === path;
 
@@ -99,29 +90,6 @@ const Sidebar = ({ className }) => {
         
         <div className="px-3 py-2">
           <div className="space-y-1">
-            {/* Theme */}
-            {!isCollapsed && (
-              <h2 className="mb-2 px-4 text-lg font-semibold">Theme</h2>
-            )}
-            <div className={cn(
-              "flex gap-1",
-              isCollapsed ? "flex-col px-2" : "px-4"
-            )}>
-              {Object.entries(themes).map(([themeName, themeClass]) => (
-                <Button
-                  key={themeName}
-                  variant="outline"
-                  size="icon"
-                  className={cn(
-                    "h-8 w-8",
-                    themeClass,
-                    theme === themeName && "ring-2 ring-offset-2 ring-offset-background"
-                  )}
-                  onClick={() => setTheme(themeName)}
-                />
-              ))}
-            </div>
-            
             {/* Dark mode */}
             <Button 
               variant="ghost" 

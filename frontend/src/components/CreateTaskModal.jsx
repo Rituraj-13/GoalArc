@@ -19,7 +19,8 @@ const CreateTaskModal = ({
     setSelectedDate,
     handleAddTodo,
     toggleCommand,
-    commands
+    commands,
+    isEditing
 }) => {
     const [showNotes, setShowNotes] = useState(false);
 
@@ -153,9 +154,9 @@ const CreateTaskModal = ({
                                     {/* Submit Button */}
                                     <button
                                         type="submit"
-                                        className="w-full mt-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] shadow-md font-semibold"
+                                        className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] font-semibold shadow-md"
                                     >
-                                        Create Task
+                                        {isEditing ? 'Update Task' : 'Add Task'}
                                     </button>
                                 </div>
                             </form>
