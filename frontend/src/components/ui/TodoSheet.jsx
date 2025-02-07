@@ -5,6 +5,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash, Check, X, WandSparkles, Calendar } from 'lucide-react'
@@ -26,6 +27,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
   const [editDesc, setEditDesc] = useState(todo.description || '');
   const [editDate, setEditDate] = useState(dayjs(todo.dueDate));
   const [isLoading, setIsLoading] = useState(false);
+  const closeRef = React.useRef(null);
 
   const formatDate = (date) => {
     if (!date) return '';
@@ -47,6 +49,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
       dueDate: editDate.toISOString()
     });
     setIsEditing(false);
+    closeRef.current?.click();
   };
 
   const handleCancel = () => {
@@ -470,6 +473,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
             </div>
           </div>
         </div>
+        <SheetClose ref={closeRef} className="hidden" />
       </SheetContent>
     </Sheet>
   );

@@ -188,27 +188,32 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         }
     };
 
-    const handleEdit = async (todo) => {
+    const handleEditTodo = async (updatedTodo) => {
         try {
-            const token = localStorage.getItem('todoToken');
-            const response = await axios.put(`http://localhost:3000/todos/${todo._id}`,
-                {
-                    title: todo.title,
-                    description: todo.description,
-                    dueDate: todo.dueDate
+            const response = await fetch(`http://localhost:3000/todos/${updatedTodo._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('todoToken')}`
                 },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
+                body: JSON.stringify(updatedTodo)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update task');
+            }
+
+            // Update the todos state immediately after successful edit
+            setTodos(prevTodos =>
+                prevTodos.map(todo =>
+                    todo._id === updatedTodo._id ? updatedTodo : todo
+                )
             );
-            setTodos(prev => prev.map(t =>
-                t._id === todo._id ? response.data : t
-            ));
-            toast.success('Task updated', { duration: 2000 });
+
+            toast.success('Task updated successfully');
         } catch (error) {
-            toast.error('Update failed', { duration: 3000 });
+            console.error('Error updating task:', error);
+            toast.error('Failed to update task');
         }
     };
 
@@ -370,7 +375,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                     <TodoSheet
                                         key={todo._id}
                                         todo={todo}
-                                        onEdit={handleEdit}
+                                        onEdit={handleEditTodo}
                                         onDelete={handleDeleteTodo}
                                         onToggleComplete={handleToggleTodo}
                                     />
