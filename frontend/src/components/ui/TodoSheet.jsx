@@ -157,7 +157,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
           "group w-full cursor-pointer rounded-xl p-4 border transition-all duration-200",
           isDark
             ? "bg-card hover:bg-card/70 border-border"
-            : "bg-white hover:bg-gray-50/50 border-gray-100"
+            : "bg-white hover:bg-gray-50/50 border-gray-200 shadow-sm hover:shadow-md"
         )}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -174,7 +174,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     "peer h-5 w-5 cursor-pointer appearance-none rounded-full border-2 transition-all",
                     isDark
                       ? "border-gray-600 hover:border-primary/50"
-                      : "border-gray-300 hover:border-blue-500/50",
+                      : "border-gray-400 hover:border-blue-500/50",
                     "checked:border-primary checked:hover:border-primary/90",
                     isLoading && "opacity-50 cursor-wait"
                   )}
@@ -195,7 +195,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     : "line-through text-gray-400"
                   : isDark
                     ? "text-gray-100"
-                    : "text-gray-900"
+                    : "text-gray-700"
               )}>
                 {todo.title}
               </span>
