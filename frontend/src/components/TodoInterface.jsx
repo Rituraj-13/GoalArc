@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
 import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon, Calendar } from 'lucide-react';
-import Header from './Header';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
@@ -17,6 +16,7 @@ import CreateTaskModal from './CreateTaskModal';
 import Sidebar from './Sidebar';
 import { TodoSheet } from './ui/TodoSheet';
 import { Button } from './ui/button';
+import { cn } from '../lib/utils';
 
 const TodoInterface = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
@@ -37,6 +37,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Get user's name from localStorage or set default
     const userName = localStorage.getItem('userName') || 'User';
@@ -135,11 +136,17 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         }
     };
 
-    const handleToggleTodo = async (id, completed) => {
+    const handleToggleTodo = async (todoId) => {
         try {
+            const todoToUpdate = todos.find(t => t._id === todoId);
+            if (!todoToUpdate) return;
+
             const token = localStorage.getItem('todoToken');
-            const response = await axios.put(`http://localhost:3000/todos/${id}`,
-                { completed: !completed },
+            const response = await axios.put(
+                `http://localhost:3000/todos/${todoId}`,
+                {
+                    completed: !todoToUpdate.completed // Toggle the completed status
+                },
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -147,16 +154,22 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 }
             );
 
-            if (response.data.streak) {
-                setStreak(response.data.streak);
-            }
+            // Update local state
+            setTodos(prevTodos =>
+                prevTodos.map(todo =>
+                    todo._id === todoId
+                        ? { ...todo, completed: !todo.completed }
+                        : todo
+                )
+            );
 
-            setTodos(prev => prev.map(todo =>
-                todo._id === id ? { ...todo, completed: !completed } : todo
-            ));
-            toast.success('Task updated', { duration: 2000 });
+            // Show success message if streak milestone reached
+            if (response.data.milestone) {
+                toast.success(`🎉 ${response.data.milestone.count} week streak achieved!`);
+            }
         } catch (error) {
-            toast.error('Update failed', { duration: 3000 });
+            toast.error('Failed to update task status');
+            console.error('Error updating todo:', error);
         }
     };
 
@@ -324,13 +337,16 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
     return (
         <div className="flex h-screen">
-            <Sidebar />
-            <div className="flex-1 overflow-auto relative">
-                <Header setIsAuthenticated={setIsAuthenticated} currentStreakData={streak.currentStreak} bestStreakData={streak.highestStreak} />
+            <Sidebar
+                setIsAuthenticated={setIsAuthenticated}
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
+            />
+            <div className="flex-1 overflow-auto relative bg-background">
                 <main className="p-8 pb-48">
                     {/* Greeting */}
                     <div className="mb-8">
-                        <h1 className="text-4xl font-bold">
+                        <h1 className="text-4xl font-bold text-foreground">
                             {getGreeting()}, {userName}! 👋
                         </h1>
                         <p className="text-muted-foreground mt-2">
@@ -346,7 +362,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     {/* Todos Section */}
                     <div className="mb-8">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-semibold">Today's Tasks</h2>
+                            <h2 className="text-2xl font-semibold text-foreground">Today's Tasks</h2>
                         </div>
                         {todos.length > 0 ? (
                             <div className="space-y-3">
@@ -361,39 +377,49 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white border border-gray-100 rounded-xl p-8 text-center shadow-sm">
+                            <div className="bg-card border-border rounded-xl p-8 text-center shadow-sm">
                                 <div className="mb-4">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
-                                        <Calendar className="w-8 h-8 text-blue-500" />
+                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                                        <Calendar className="w-8 h-8 text-primary" />
                                     </div>
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks yet</h3>
-                                <p className="text-gray-500 mb-6">Create your first task to get started on your productivity journey!</p>
+                                <h3 className="text-xl font-semibold text-foreground mb-2">No tasks yet</h3>
+                                <p className="text-muted-foreground mb-6">Create your first task to get started on your productivity journey!</p>
                             </div>
                         )}
                     </div>
                 </main>
 
                 {/* Create Task Button - Fixed position */}
-                <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 w-[90%] sm:w-auto sm:min-w-[400px] sm:max-w-[500px] transition-all duration-300 ease-in-out">
+                <div className={cn(
+                    "fixed bottom-24 transform -translate-x-1/2 w-[90%] sm:w-auto sm:min-w-[400px] sm:max-w-[500px] transition-all duration-300 ease-in-out",
+                    isCollapsed
+                        ? "left-[calc(50%+32px)]" // 64px/2 = 32px (collapsed sidebar width is 64px)
+                        : "left-[calc(50%+125px)]" // 250px/2 = 125px (expanded sidebar width is 250px)
+                )}>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-3 bg-black text-white hover:bg-gray-800 rounded-full transition-colors shadow-lg"
+                        className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors shadow-lg"
                     >
                         <span className="flex items-center gap-2">
                             <Plus size={20} />
                             <span className="text-sm sm:text-base">Create new task</span>
                         </span>
-                        <span className="text-gray-400">
+                        <span className="text-primary-foreground/70">
                             <ArrowBigRightDashIcon size={20} />
                         </span>
                     </button>
                 </div>
 
                 {/* Quote - Fixed at bottom */}
-                <footer className="fixed bottom-0 left-0 right-0 py-2 sm:py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
-                    <p className="text-center text-gray-700 text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2 select-none">
-                        <span className="font-semibold text-blue-600 select-none">Quote of The Day - </span>
+                <footer className={cn(
+                    "fixed bottom-0 py-2 sm:py-4 bg-card/50 backdrop-blur-sm border-t border-border transition-all duration-300",
+                    isCollapsed
+                        ? "left-[64px] right-0" // exact 64px sidebar width
+                        : "left-60 right-0" // exact 240px (w-60) sidebar width
+                )}>
+                    <p className="text-center text-muted-foreground text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2 select-none">
+                        <span className="font-semibold text-primary select-none">Quote of The Day - </span>
                         {quote}
                     </p>
                 </footer>
@@ -402,23 +428,18 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             {/* Create Task Modal */}
             <CreateTaskModal
                 isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditingId(null);
-                    setEditTitle('');
-                    setEditDesc('');
-                    setEditDate(dayjs().add(1, 'hour'));
-                }}
-                newTodo={editingId ? editTitle : newTodo}
-                setNewTodo={editingId ? setEditTitle : setNewTodo}
-                newDesc={editingId ? editDesc : newDesc}
-                setNewDesc={editingId ? setEditDesc : setNewDesc}
-                selectedDate={editingId ? editDate : selectedDate}
-                setSelectedDate={editingId ? setEditDate : setSelectedDate}
-                handleAddTodo={editingId ? () => handleUpdateTodo(editingId) : handleAddTodo}
+                onClose={() => setIsModalOpen(false)}
+                newTodo={newTodo}
+                setNewTodo={setNewTodo}
+                newDesc={newDesc}
+                setNewDesc={setNewDesc}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                handleAddTodo={handleAddTodo}
                 toggleCommand={toggleCommand}
                 commands={commands}
-                isEditing={!!editingId}
+                isEditing={isEditing}
+                isCollapsed={isCollapsed}
             />
         </div>
     );

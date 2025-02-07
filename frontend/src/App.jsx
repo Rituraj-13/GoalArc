@@ -8,6 +8,7 @@ import axios from 'axios';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 import { ThemeProvider } from './components/ThemeProvider'
+import StreaksPage from './components/StreaksPage'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,6 +49,12 @@ export default function App({ children }) {
           <Route path="/todos" element={
             isAuthenticated ?
               <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
+              <Navigate to="/auth" />
+          } />
+
+          <Route path="/streaks" element={
+            isAuthenticated ?
+              <StreaksPage setIsAuthenticated={setIsAuthenticated} /> :
               <Navigate to="/auth" />
           } />
         </Routes>
