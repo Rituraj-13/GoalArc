@@ -454,8 +454,8 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     className={cn(
                       "p-4 rounded-lg border",
                       isDark
-                        ? "bg-card border-border !text-gray-200"
-                        : "bg-white border-gray-100"
+                        ? "[&.wmde-markdown]:!bg-card [&.wmde-markdown-color]:!text-gray-200 border-border [&_.wmde-markdown]:!bg-card [&]:!bg-card [&_*]:!bg-card"
+                        : "[&.wmde-markdown]:!bg-white [&.wmde-markdown-color]:!text-gray-700 border-gray-100"
                     )}
                   />
                 ) : (
