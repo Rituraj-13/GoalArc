@@ -341,13 +341,13 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     };
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen transition-colors duration-200 ease-in-out">
             <Sidebar
                 setIsAuthenticated={setIsAuthenticated}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}
             />
-            <div className="flex-1 overflow-auto relative bg-background">
+            <div className="flex-1 overflow-auto relative bg-background transition-colors duration-200 ease-in-out">
                 <main className="p-8 pb-48">
                     {/* Greeting */}
                     <div className="mb-8">

@@ -41,12 +41,8 @@ const Sidebar = ({ className, setIsAuthenticated, isCollapsed, setIsCollapsed })
   return (
     <div
       className={cn(
-        "pb-12 min-h-screen transition-all duration-300 border-r",
-        isDark
-          ? "bg-[#22092C] border-gray-800"
-          : "bg-white border-gray-200",
-        isCollapsed ? "w-20" : "w-60",
-        className
+        "border-r border-border bg-card transition-all duration-200 ease-in-out",
+        isCollapsed ? "w-16" : "w-60"
       )}
     >
       <div className="space-y-4 py-4">
