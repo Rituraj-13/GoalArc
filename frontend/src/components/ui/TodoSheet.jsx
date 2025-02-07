@@ -419,7 +419,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     value={editDesc}
                     onChange={setEditDesc}
                     preview="edit"
-                    height={200}
+                    height={150}
                     className={cn(
                       "overflow-hidden rounded-lg",
                       isDark && [
