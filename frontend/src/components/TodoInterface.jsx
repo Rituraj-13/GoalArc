@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
-import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon } from 'lucide-react';
+import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon, Calendar } from 'lucide-react';
 import Header from './Header';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -31,8 +31,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [editDate, setEditDate] = useState(dayjs());
     const [streak, setStreak] = useState({
         currentStreak: 0,
-        highestStreak: 0
-    })
+        highestStreak: 0,
+        lastCompletionDate: null,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -51,6 +53,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     useEffect(() => {
         const fetchStreakData = async () => {
             try {
+                setLoading(true);
                 const token = localStorage.getItem('todoToken');
                 const response = await axios.get('http://localhost:3000/todos/streak', {
                     headers: {
@@ -59,7 +62,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 });
                 setStreak(response.data);
             } catch (error) {
-                console.error('Failed to fetch Streak Data !')
+                console.error('Failed to fetch Streak Data:', error);
+                toast.error('Failed to load streak data');
+            } finally {
+                setLoading(false);
             }
         }
         fetchStreakData();
@@ -69,6 +75,15 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             setQuote(newQuote);
         };
         fetchQuote();
+    }, []);
+
+    useEffect(() => {
+        // Check streak every hour
+        const streakCheckInterval = setInterval(() => {
+            fetchStreakData();
+        }, 60 * 60 * 1000);
+
+        return () => clearInterval(streakCheckInterval);
     }, []);
 
     const fetchTodos = async () => {
@@ -82,7 +97,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             setTodos(response.data);
             setLoading(false);
         } catch (error) {
-            toast.error('Failed to Fetch Todos !');
+            console.error('Failed to fetch todos:', error);
             setLoading(false);
         }
     };
@@ -96,7 +111,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.post('http://localhost:3000/todos',
+            const response = await axios.post('http://localhost:3000/todos',
                 {
                     title: newTodo,
                     description: newDesc,
@@ -113,7 +128,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             setNewDesc('');
             setSelectedDate(dayjs());
             setIsModalOpen(false);
-            await fetchTodos();
+            setTodos(prev => sortTodos([...prev, response.data]));
             toast.success('Task added', { duration: 2000 });
         } catch (error) {
             toast.error('Failed to add task', { duration: 3000 });
@@ -136,7 +151,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 setStreak(response.data.streak);
             }
 
-            fetchTodos();
+            setTodos(prev => prev.map(todo =>
+                todo._id === id ? { ...todo, completed: !completed } : todo
+            ));
             toast.success('Task updated', { duration: 2000 });
         } catch (error) {
             toast.error('Update failed', { duration: 3000 });
@@ -151,7 +168,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            fetchTodos();
+            setTodos(prev => prev.filter(todo => todo._id !== id));
             toast.success('Task deleted', { duration: 2000 });
         } catch (error) {
             toast.error('Delete failed', { duration: 3000 });
@@ -161,7 +178,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const handleEdit = async (todo) => {
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.put(`http://localhost:3000/todos/${todo._id}`,
+            const response = await axios.put(`http://localhost:3000/todos/${todo._id}`,
                 {
                     title: todo.title,
                     description: todo.description,
@@ -173,7 +190,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     }
                 }
             );
-            fetchTodos();
+            setTodos(prev => prev.map(t =>
+                t._id === todo._id ? response.data : t
+            ));
             toast.success('Task updated', { duration: 2000 });
         } catch (error) {
             toast.error('Update failed', { duration: 3000 });
@@ -275,6 +294,34 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         },
     };
 
+    const sortTodos = (todos) => {
+        return [...todos].sort((a, b) => {
+            // If one is completed and other is not, completed goes last
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1;
+            }
+
+            const now = dayjs();
+            const aDueDate = dayjs(a.dueDate);
+            const bDueDate = dayjs(b.dueDate);
+            const aIsOverdue = now.isAfter(aDueDate);
+            const bIsOverdue = now.isAfter(bDueDate);
+
+            // If both are completed, sort by due date
+            if (a.completed && b.completed) {
+                return aDueDate.isBefore(bDueDate) ? -1 : 1;
+            }
+
+            // If one is overdue and other is not, overdue goes first
+            if (aIsOverdue !== bIsOverdue) {
+                return aIsOverdue ? -1 : 1;
+            }
+
+            // If both are overdue or both are due, sort by due date
+            return aDueDate.isBefore(bDueDate) ? -1 : 1;
+        });
+    };
+
     return (
         <div className="flex h-screen">
             <Sidebar />
@@ -301,17 +348,29 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-semibold">Today's Tasks</h2>
                         </div>
-                        <div className="space-y-3">
-                            {todos.map(todo => (
-                                <TodoSheet
-                                    key={todo._id}
-                                    todo={todo}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDeleteTodo}
-                                    onToggleComplete={handleToggleTodo}
-                                />
-                            ))}
-                        </div>
+                        {todos.length > 0 ? (
+                            <div className="space-y-3">
+                                {sortTodos(todos).map(todo => (
+                                    <TodoSheet
+                                        key={todo._id}
+                                        todo={todo}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDeleteTodo}
+                                        onToggleComplete={handleToggleTodo}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-white border border-gray-100 rounded-xl p-8 text-center shadow-sm">
+                                <div className="mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
+                                        <Calendar className="w-8 h-8 text-blue-500" />
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks yet</h3>
+                                <p className="text-gray-500 mb-6">Create your first task to get started on your productivity journey!</p>
+                            </div>
+                        )}
                     </div>
                 </main>
 
@@ -361,7 +420,6 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 commands={commands}
                 isEditing={!!editingId}
             />
-            <Toaster />
         </div>
     );
 };

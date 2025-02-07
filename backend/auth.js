@@ -7,6 +7,7 @@ import router from "./routes/todo.js"
 import dotenv from 'dotenv';
 import streakCheck from "./Middlewares/StreakCheck.js";
 import { sendVerificationEmail } from './services/emailService.js';
+import cron from 'node-cron';
 
 dotenv.config();
 
@@ -195,6 +196,33 @@ app.post('/resend-otp', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+});
+
+// Run daily at midnight
+cron.schedule('0 0 * * *', async () => {
+    try {
+        const streaks = await Streak.find({});
+        const now = new Date();
+
+        for (const streak of streaks) {
+            if (!streak.lastCompletionDate) continue;
+
+            const userNow = new Date(now.toLocaleString('en-US', { timeZone: streak.timezone }));
+            const userLastDate = new Date(streak.lastCompletionDate.toLocaleString('en-US', { timeZone: streak.timezone }));
+
+            const daysSinceLastCompletion = Math.floor(
+                (userNow - userLastDate) / (1000 * 60 * 60 * 24)
+            );
+
+            if (daysSinceLastCompletion > 1) {
+                streak.currentStreak = 0;
+                streak.lastCompletionDate = null;
+                await streak.save();
+            }
+        }
+    } catch (error) {
+        console.error('Daily streak check failed:', error);
     }
 });
 

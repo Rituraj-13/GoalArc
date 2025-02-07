@@ -8,7 +8,8 @@ const streakSchema = new mongoose.Schema({
     },
     currentStreak: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     lastCompletionDate: {
         type: Date,
@@ -16,7 +17,8 @@ const streakSchema = new mongoose.Schema({
     },
     highestStreak: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     lastUpdatedDay: {
         type: Date,
@@ -27,5 +29,12 @@ const streakSchema = new mongoose.Schema({
         default: 'UTC'
     }
 })
+
+streakSchema.pre('save', function(next) {
+    if (this.currentStreak > this.highestStreak) {
+        this.highestStreak = this.currentStreak;
+    }
+    next();
+});
 
 export default mongoose.model('Streak', streakSchema);

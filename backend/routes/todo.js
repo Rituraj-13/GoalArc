@@ -36,14 +36,14 @@ router.get('/streak', async (req, res) => {
 
 router.get('/check-streak', async (req, res) => {
     try {
-        const streak = await Streak.findOne({ user: req.user.id });
+        const streak = await Streak.findOne({ user: req.userId });
         if (!streak) {
             return res.status(404).json({ message: 'Streak not found' });
         }
 
         const userTimeZone = streak.timezone;
         const now = new Date().toLocaleString('en-US', { timeZone: userTimeZone });
-        const lastDate = streak.lastCompletionDate ? 
+        const lastDate = streak.lastCompletionDate ?
             new Date(streak.lastCompletionDate).toLocaleString('en-US', { timeZone: userTimeZone }) : null;
 
         if (lastDate) {
@@ -141,34 +141,37 @@ router.put('/:id', async (req, res) => {
         if (completed !== undefined && completed !== todo.completed && completed) {
             let streak = await Streak.findOne({ user: req.userId });
             if (!streak) {
-                streak = new Streak({ user: req.userId });
+                streak = new Streak({
+                    user: req.userId,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                });
             }
 
             const now = new Date();
-            const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
-            const isCompletedBeforeDue = !dueDate || now <= dueDate;
+            const userNow = new Date(now.toLocaleString('en-US', { timeZone: streak.timezone }));
+            const startOfToday = new Date(userNow.setHours(0, 0, 0, 0));
 
-            if (isCompletedBeforeDue) {
-                if (!streak.lastCompletionDate) {
-                    streak.currentStreak = 1;
+            if (!streak.lastCompletionDate) {
+                streak.currentStreak = 1;
+            } else {
+                const lastDate = new Date(streak.lastCompletionDate);
+                const userLastDate = new Date(lastDate.toLocaleString('en-US', { timeZone: streak.timezone }));
+                const startOfLastDate = new Date(userLastDate.setHours(0, 0, 0, 0));
+
+                const daysDifference = Math.floor((startOfToday - startOfLastDate) / (1000 * 60 * 60 * 24));
+
+                if (daysDifference === 0) {
+                    // Same day, keep streak
+                } else if (daysDifference === 1) {
+                    streak.currentStreak += 1;
                 } else {
-                    const lastDate = new Date(streak.lastCompletionDate);
-
-                    if (isSameDay(now, lastDate)) {
-                        // Keep current streak for same day completions
-                    } else if (isConsecutiveDay(lastDate, now)) {
-                        streak.currentStreak += 1;
-                    } else {
-                        streak.currentStreak = 0;
-                    }
+                    streak.currentStreak = 1; // Reset to 1 for new streak
                 }
-
-                streak.lastCompletionDate = now;
-                if (streak.currentStreak > 0) {
-                    streak.highestStreak = Math.max(streak.currentStreak, streak.highestStreak);
-                }
-                await streak.save();
             }
+
+            streak.lastCompletionDate = now;
+            streak.highestStreak = Math.max(streak.currentStreak, streak.highestStreak);
+            await streak.save();
         }
 
         // Update todo fields
@@ -182,6 +185,17 @@ router.put('/:id', async (req, res) => {
         // Return streak info if completion status changed
         if (completed !== undefined && completed !== todo.completed) {
             const streak = await Streak.findOne({ user: req.userId });
+            if (streak.currentStreak > 0 && streak.currentStreak % 7 === 0) {
+                // Week milestone reached
+                return res.json({
+                    todo: updatedTodo,
+                    streak,
+                    milestone: {
+                        type: 'week',
+                        count: Math.floor(streak.currentStreak / 7)
+                    }
+                });
+            }
             return res.json({ todo: updatedTodo, streak });
         }
 
