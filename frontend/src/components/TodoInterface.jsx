@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
-import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon, Calendar } from 'lucide-react';
+import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon, Calendar, ChevronDown } from 'lucide-react';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
@@ -17,6 +17,12 @@ import Sidebar from './Sidebar';
 import { TodoSheet } from './ui/TodoSheet';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const TodoInterface = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
@@ -38,6 +44,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState("today");
 
     // Get user's name from localStorage or set default
     const userName = localStorage.getItem('userName') || 'User';
@@ -340,6 +347,26 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         });
     };
 
+    const getFilteredTodos = () => {
+        const today = dayjs().startOf('day');
+        const tomorrow = dayjs().add(1, 'day').startOf('day');
+
+        switch (selectedFilter) {
+            case "today":
+                return todos.filter(todo =>
+                    dayjs(todo.dueDate).isSame(today, 'day')
+                );
+            case "tomorrow":
+                return todos.filter(todo =>
+                    dayjs(todo.dueDate).isSame(tomorrow, 'day')
+                );
+            case "all":
+                return todos;
+            default:
+                return todos;
+        }
+    };
+
     return (
         <div className="flex h-screen transition-colors duration-200 ease-in-out">
             <Sidebar
@@ -367,11 +394,52 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     {/* Todos Section */}
                     <div className="mb-8">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-semibold text-foreground">Today's Tasks</h2>
+                            <h2 className="text-2xl font-semibold text-foreground">
+                                {selectedFilter === "today" && "Due Today 🙇"}
+                                {selectedFilter === "tomorrow" && "Due Tomorrow ⌛"}
+                                {selectedFilter === "all" && "All Tasks 🎯"}
+                            </h2>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={cn(
+                                            "flex items-center gap-2",
+                                            isCollapsed
+                                                ? "hover:bg-gray-800"
+                                                : "hover:bg-primary/10 hover:text-primary "
+                                        )}
+                                    >
+                                        Filter
+                                        <ChevronDown className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedFilter("today")}
+                                        className={selectedFilter === "today" ? "bg-primary/10" : ""}
+                                    >
+                                        Due Today
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedFilter("tomorrow")}
+                                        className={selectedFilter === "tomorrow" ? "bg-primary/10" : ""}
+                                    >
+                                        Due Tomorrow
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => setSelectedFilter("all")}
+                                        className={selectedFilter === "all" ? "bg-primary/10" : ""}
+                                    >
+                                        All Tasks
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                        {todos.length > 0 ? (
+                        {getFilteredTodos().length > 0 ? (
                             <div className="space-y-3">
-                                {sortTodos(todos).map(todo => (
+                                {sortTodos(getFilteredTodos()).map(todo => (
                                     <TodoSheet
                                         key={todo._id}
                                         todo={todo}
