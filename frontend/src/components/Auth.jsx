@@ -90,7 +90,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                             type="email"
                                             autoComplete="email"
                                             required
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
                                             placeholder="Email address"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -106,7 +106,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                             type="password"
                                             autoComplete="current-password"
                                             required
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
                                             placeholder="Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
@@ -123,7 +123,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                 type="password"
                                                 required
                                                 className={`mt-1 block w-full px-3 py-2 border ${!passwordsMatch ? 'border-red-500' : 'border-gray-300'
-                                                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                                                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black`}
                                                 placeholder="Retype Password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
