@@ -25,11 +25,15 @@ export function ThemeProvider({ children }) {
     setIsCollapsed(savedCollapsed)
   }, [])
 
+  // Update localStorage whenever isCollapsed changes
   useEffect(() => {
-    // Save preferences
-    localStorage.setItem('darkMode', isDark)
-    localStorage.setItem('sidebarCollapsed', isCollapsed)
-  }, [isDark, isCollapsed])
+    localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
+  }, [isCollapsed])
+
+  // Update localStorage whenever isDark changes
+  useEffect(() => {
+    localStorage.setItem('darkMode', isDark.toString())
+  }, [isDark])
 
   return (
     <ThemeContext.Provider value={{

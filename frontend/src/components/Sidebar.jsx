@@ -18,10 +18,12 @@ import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-const Sidebar = ({ className, setIsAuthenticated, isCollapsed, setIsCollapsed }) => {
+const Sidebar = ({ className, setIsAuthenticated }) => {
   const {
     isDark,
     setIsDark,
+    isCollapsed,
+    setIsCollapsed,
   } = useTheme();
 
   const navigate = useNavigate();
