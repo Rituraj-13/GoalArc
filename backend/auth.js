@@ -29,7 +29,9 @@ const userSchema = new mongoose.Schema({
         default: false
     },
     verificationOTP: String,
-    otpExpiry: Date
+    otpExpiry: Date,
+    firstName: String,
+    lastName: String
 })
 const UserObject = new mongoose.model('userCreds', userSchema);
 
@@ -55,6 +57,9 @@ app.get('/hitBackend', async (req, res) => {
 app.post('/signup', async (req, res) => {
     const username = req.body.name;
     const password = req.body.pw;
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+
 
     try {
         const usernameCheck = await UserObject.findOne({ username });
@@ -74,17 +79,24 @@ app.post('/signup', async (req, res) => {
             username,
             password: hashPw,
             verificationOTP: otp,
-            otpExpiry: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes expiry
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+            firstName,
+            lastName
         });
 
+
         // Send verification email
-        await sendVerificationEmail(username, otp);
+        await sendVerificationEmail(username, otp, firstName, lastName);
 
         res.json({
             userCreated: false,
             userCheck: false,
             msg: "Please check your email for verification code.",
+            firstName,
+            lastName
+
         });
+
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({
@@ -122,7 +134,8 @@ app.post('/signin', async (req, res) => {
         return res.json({
             msg: "Successfully signed In !!",
             signIn: true,
-            token
+            token,
+            firstName: user.firstName
         })
 
     } catch (error) {
@@ -159,17 +172,25 @@ app.post('/verify-otp', async (req, res) => {
         const newUser = new UserObject({
             username: pendingUser.username,
             password: pendingUser.password,
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName,
             isVerified: true
         });
         await newUser.save();
 
+
         // Clean up the pending registration
         pendingRegistrations.delete(email);
 
-        res.json({ msg: 'Email verified successfully' });
+        res.json({
+            msg: 'Email verified successfully',
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName
+        });
     } catch (error) {
         res.status(500).json({ msg: 'Server error', error: error.message });
     }
+
 });
 
 app.post('/resend-otp', async (req, res) => {
@@ -189,11 +210,14 @@ app.post('/resend-otp', async (req, res) => {
         pendingRegistrations.set(email, pendingUser);
 
         // Send new verification email
-        await sendVerificationEmail(email, otp);
+        await sendVerificationEmail(email, otp, pendingUser.firstName, pendingUser.lastName);
 
         res.json({
-            msg: 'OTP resent successfully'
+            msg: 'OTP resent successfully',
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName
         });
+
     } catch (error) {
         res.status(500).json({ msg: 'Server error', error: error.message });
     }

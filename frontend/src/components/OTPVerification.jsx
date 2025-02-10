@@ -52,7 +52,7 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
 
                 if (loginResponse.data.token) {
                     localStorage.setItem('todoToken', loginResponse.data.token);
-                    // Remove the temporary password
+                    localStorage.setItem('firstName', verifyResponse.data.firstName);
                     localStorage.removeItem('tempSignupPassword');
                     toast.success('Verification successful!', { duration: 3000 });
                     onVerificationComplete();

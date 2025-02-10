@@ -47,7 +47,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [selectedFilter, setSelectedFilter] = useState("today");
 
     // Get user's name from localStorage or set default
-    const userName = localStorage.getItem('userName') || 'User';
+    const userName = localStorage.getItem('firstName') || 'User';
 
     // Get greeting based on time of day
     const getGreeting = () => {

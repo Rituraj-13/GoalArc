@@ -4,7 +4,7 @@ const mailerSend = new MailerSend({
     apiKey: process.env.MAILERSEND_API_KEY,
 });
 
-export const sendVerificationEmail = async (email, otp) => {
+export const sendVerificationEmail = async (email, otp, firstName, lastName) => {
     try {
         const sentFrom = new Sender("GoalArc@trial-zr6ke4n32x3lon12.mlsender.net", "GoalArc");
         const recipient = new Recipient(email);
@@ -106,7 +106,7 @@ export const sendVerificationEmail = async (email, otp) => {
             <h1>Email Verification</h1>
         </div>
         <div class="content">
-            <p>Hello,</p>
+            <p>Hello, ${firstName} ${lastName}</p>
             <p>Thank you for signing up with <strong>GoalArc</strong>! <br> Please use the One-Time Password (OTP) below to complete your verification process:</p>
             
             <div class="otp">${otp}</div>

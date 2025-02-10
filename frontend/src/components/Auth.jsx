@@ -12,6 +12,9 @@ const AuthForm = ({ setIsAuthenticated }) => {
     const [passwordsMatch, setPasswordsMatch] = useState(true);
     const [showOTPVerification, setShowOTPVerification] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+
 
     const confirmPasswordCheck = () => {
         const match = password === confirmPassword;
@@ -38,9 +41,12 @@ const AuthForm = ({ setIsAuthenticated }) => {
             const response = await axios.post(backendUrl,
                 {
                     name: email,
-                    pw: password
+                    pw: password,
+                    firstName: firstName,
+                    lastName: lastName
                 }
             );
+
 
             toast.dismiss(loadingToastId);
 
@@ -51,6 +57,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                 toast.success('Check your email', { duration: 3000 });
             } else if (response.data.token) {
                 localStorage.setItem('todoToken', response.data.token);
+                localStorage.setItem('firstName', response.data.firstName);
                 setIsAuthenticated(true);
                 toast.success('Welcome back!', { duration: 2000 });
             }
@@ -80,9 +87,52 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                     {isSignUp ? 'Create your account' : 'Sign in to your account'}
                                 </h2>
                                 <form className="space-y-6" onSubmit={handleSubmit}>
+                                    {isSignUp && (
+                                        <div className="flex flex-row gap-4">
+                                            <div>
+                                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                                    First Name
+                                                </label>
+                                                <input
+                                                    id="firstName"
+                                                    name="firstName"
+                                                    type="text"
+                                                    autoComplete="firstName"
+                                                    required
+                                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+                                                    placeholder="First Name"
+
+                                                    value={firstName}
+                                                    onChange={(e) => setFirstName(e.target.value)}
+                                                />
+
+                                            </div>
+                                            <div>
+                                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                                    Last Name
+                                                </label>
+                                                <input
+
+                                                    id="lastName"
+                                                    name="lastName"
+                                                    type="text"
+                                                    autoComplete="lastName"
+                                                    required
+                                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+                                                    placeholder="Last Name"
+
+                                                    value={lastName}
+                                                    onChange={(e) => setLastName(e.target.value)}
+                                                />
+                                            </div>
+
+                                        </div>
+
+                                    )}
                                     <div>
                                         <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
                                             Email address
+
                                         </label>
                                         <input
                                             id="email-address"
