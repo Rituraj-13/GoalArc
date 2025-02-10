@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import streakCheck from "./Middlewares/StreakCheck.js";
 import { sendVerificationEmail } from './services/emailService.js';
 import cron from 'node-cron';
+import AuthMiddleware from './Middlewares/AuthMiddleware.js';
 
 dotenv.config();
 
@@ -155,7 +156,7 @@ app.post('/verify-otp', async (req, res) => {
         const pendingUser = pendingRegistrations.get(email);
 
         if (!pendingUser) {
-            return res.status(404).json({ msg: 'Registration session expired or not found' });
+            return res.status(404).json({ msg: 'Verification session expired or not found' });
         }
 
         if (pendingUser.verificationOTP !== otp) {
@@ -163,12 +164,19 @@ app.post('/verify-otp', async (req, res) => {
         }
 
         if (pendingUser.otpExpiry < new Date()) {
-            // Clean up expired registration
             pendingRegistrations.delete(email);
             return res.status(400).json({ msg: 'OTP expired' });
         }
 
-        // Create and save the verified user
+        // If this is an email update verification
+        if (pendingUser.isEmailUpdate) {
+            pendingRegistrations.delete(email);
+            return res.json({
+                msg: 'Email verified successfully'
+            });
+        }
+
+        // Regular signup verification flow
         const newUser = new UserObject({
             username: pendingUser.username,
             password: pendingUser.password,
@@ -178,8 +186,6 @@ app.post('/verify-otp', async (req, res) => {
         });
         await newUser.save();
 
-
-        // Clean up the pending registration
         pendingRegistrations.delete(email);
 
         res.json({
@@ -190,32 +196,34 @@ app.post('/verify-otp', async (req, res) => {
     } catch (error) {
         res.status(500).json({ msg: 'Server error', error: error.message });
     }
-
 });
 
 app.post('/resend-otp', async (req, res) => {
     const { email } = req.body;
 
     try {
-        const pendingUser = pendingRegistrations.get(email);
-        if (!pendingUser) {
-            return res.status(404).json({ msg: 'Registration session expired or not found' });
+        // Check if email already exists in database
+        const existingUser = await UserObject.findOne({ username: email });
+        if (existingUser) {
+            return res.status(400).json({ msg: 'Email already in use' });
         }
 
+        // Generate new OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Update the pending registration with new OTP
-        pendingUser.verificationOTP = otp;
-        pendingUser.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-        pendingRegistrations.set(email, pendingUser);
+        // Store in pending registrations with existing user data
+        pendingRegistrations.set(email, {
+            username: email,
+            verificationOTP: otp,
+            otpExpiry: new Date(Date.now() + 10 * 60 * 1000),
+            isEmailUpdate: true // Flag to indicate this is an email update
+        });
 
-        // Send new verification email
-        await sendVerificationEmail(email, otp, pendingUser.firstName, pendingUser.lastName);
+        // Send verification email
+        await sendVerificationEmail(email, otp);
 
         res.json({
-            msg: 'OTP resent successfully',
-            firstName: pendingUser.firstName,
-            lastName: pendingUser.lastName
+            msg: 'OTP sent successfully'
         });
 
     } catch (error) {
@@ -247,6 +255,45 @@ cron.schedule('0 0 * * *', async () => {
         }
     } catch (error) {
         console.error('Daily streak check failed:', error);
+    }
+});
+
+// Get user profile
+app.get('/user/profile', AuthMiddleware, async (req, res) => {
+    try {
+        const user = await UserObject.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        res.json({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username
+        });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// Update user profile
+app.put('/user/profile', AuthMiddleware, async (req, res) => {
+    try {
+        const { firstName, lastName, username } = req.body;
+        const user = await UserObject.findById(req.userId);
+
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        // Update fields if provided
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (username) user.username = username;
+
+        await user.save();
+        res.json({ msg: 'Profile updated successfully' });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

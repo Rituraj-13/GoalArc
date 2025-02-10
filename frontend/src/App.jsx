@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 import { ThemeProvider } from './components/ThemeProvider'
 import StreaksPage from './components/StreaksPage'
+import Settings from './components/Settings'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -57,6 +58,8 @@ export default function App({ children }) {
               <StreaksPage setIsAuthenticated={setIsAuthenticated} /> :
               <Navigate to="/auth" />
           } />
+
+          <Route path="/settings" element={<Settings setIsAuthenticated={setIsAuthenticated} />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

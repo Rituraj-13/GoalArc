@@ -9,9 +9,6 @@ import { DatePicker, DateTimePicker, MobileDateTimePicker } from '@mui/x-date-pi
 import MDEditor, { commands } from "@uiw/react-md-editor";
 import { Checkbox } from '@mui/material';
 import AIResponse from '../utils/AIResponse';
-import currStreak from '../assets/currStreak.svg';
-import bestStreak from '../assets/bestStreak.svg';
-import bestStreakk from '../assets/bestStreakk.svg';
 import CreateTaskModal from './CreateTaskModal';
 import Sidebar from './Sidebar';
 import { TodoSheet } from './ui/TodoSheet';

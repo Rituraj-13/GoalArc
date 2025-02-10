@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const OTPVerification = ({ email, onVerificationComplete }) => {
+const OTPVerification = ({ email, onVerificationComplete, isProfileUpdate = false }) => {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState(60); // 60 seconds timer
@@ -41,21 +41,24 @@ const OTPVerification = ({ email, onVerificationComplete }) => {
             });
 
             if (verifyResponse.data.msg === 'Email verified successfully') {
-                // Get the stored password from localStorage
-                const password = localStorage.getItem('tempSignupPassword');
-
-                // Attempt to sign in
-                const loginResponse = await axios.post('http://localhost:3000/signin', {
-                    name: email,
-                    pw: password
-                });
-
-                if (loginResponse.data.token) {
-                    localStorage.setItem('todoToken', loginResponse.data.token);
-                    localStorage.setItem('firstName', verifyResponse.data.firstName);
-                    localStorage.removeItem('tempSignupPassword');
-                    toast.success('Verification successful!', { duration: 3000 });
+                if (isProfileUpdate) {
+                    // For profile updates, just complete the verification
                     onVerificationComplete();
+                } else {
+                    // Existing login flow
+                    const password = localStorage.getItem('tempSignupPassword');
+                    const loginResponse = await axios.post('http://localhost:3000/signin', {
+                        name: email,
+                        pw: password
+                    });
+
+                    if (loginResponse.data.token) {
+                        localStorage.setItem('todoToken', loginResponse.data.token);
+                        localStorage.setItem('firstName', verifyResponse.data.firstName);
+                        localStorage.removeItem('tempSignupPassword');
+                        toast.success('Verification successful!', { duration: 3000 });
+                        onVerificationComplete();
+                    }
                 }
             }
         } catch (error) {
