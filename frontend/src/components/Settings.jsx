@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import OTPVerification from './OTPVerification';
-import { UserCircle, Mail, User, Pencil } from 'lucide-react';
+import { UserCircle, Mail, User, Pencil, Calendar } from 'lucide-react';
 
 const Settings = ({ setIsAuthenticated }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -16,6 +16,7 @@ const Settings = ({ setIsAuthenticated }) => {
     const [isEmailVerification, setIsEmailVerification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [joinDate, setJoinDate] = useState('');
 
     // Fetch current user data
     useEffect(() => {
@@ -27,10 +28,11 @@ const Settings = ({ setIsAuthenticated }) => {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                const { firstName, lastName, username } = response.data;
+                const { firstName, lastName, username, joinDate } = response.data;
                 setFirstName(firstName);
                 setLastName(lastName);
                 setEmail(username);
+                setJoinDate(joinDate);
             } catch (error) {
                 toast.error('Failed to load user data');
             }
@@ -52,10 +54,10 @@ const Settings = ({ setIsAuthenticated }) => {
             // If email is being changed, send OTP first
             if (newEmail && newEmail !== email) {
                 try {
-                    await axios.post('http://localhost:3000/resend-otp', { 
-                        email: newEmail 
+                    await axios.post('http://localhost:3000/resend-otp', {
+                        email: newEmail
                     });
-                    
+
                     setIsEmailVerification(true);
                     toast.success('Verification code sent to your new email');
                     return;
@@ -103,7 +105,7 @@ const Settings = ({ setIsAuthenticated }) => {
                     }
                 }
             );
-            
+
             setEmail(newEmail);
             setNewEmail('');
             setIsEmailVerification(false);
@@ -116,7 +118,7 @@ const Settings = ({ setIsAuthenticated }) => {
 
     if (isEmailVerification) {
         return (
-            <OTPVerification 
+            <OTPVerification
                 email={newEmail}
                 onVerificationComplete={handleEmailVerificationComplete}
                 isProfileUpdate={true}
@@ -134,7 +136,7 @@ const Settings = ({ setIsAuthenticated }) => {
             <div className="flex-1 p-8 bg-background">
                 <div className="max-w-2xl mx-auto">
                     <h1 className="text-3xl font-bold mb-8 text-foreground">Profile Settings</h1>
-                    
+
                     {/* Show either Profile Card or Edit Form based on isEditing state */}
                     {!isEditing ? (
                         // Profile Card
@@ -177,6 +179,17 @@ const Settings = ({ setIsAuthenticated }) => {
                                     <span>Email:</span>
                                     <span className="text-foreground">{email}</span>
                                 </div>
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <Calendar className="w-5 h-5" />
+                                    <span>Member since:</span>
+                                    <span className="text-foreground">
+                                        {new Date(joinDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     ) : (
@@ -196,7 +209,7 @@ const Settings = ({ setIsAuthenticated }) => {
                                         required
                                     />
                                 </div>
-                                
+
                                 <div>
                                     <label className="block text-sm font-medium mb-2 text-foreground">
                                         Last Name
@@ -209,7 +222,7 @@ const Settings = ({ setIsAuthenticated }) => {
                                         required
                                     />
                                 </div>
-                                
+
                                 <div>
                                     <label className="block text-sm font-medium mb-2 text-foreground">
                                         Current Email

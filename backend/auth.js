@@ -32,7 +32,11 @@ const userSchema = new mongoose.Schema({
     verificationOTP: String,
     otpExpiry: Date,
     firstName: String,
-    lastName: String
+    lastName: String,
+    joinDate: {
+        type: Date,
+        default: Date.now
+    }
 })
 const UserObject = new mongoose.model('userCreds', userSchema);
 
@@ -268,7 +272,8 @@ app.get('/user/profile', AuthMiddleware, async (req, res) => {
         res.json({
             firstName: user.firstName,
             lastName: user.lastName,
-            username: user.username
+            username: user.username,
+            joinDate: user.joinDate
         });
     } catch (error) {
         res.status(500).json({ msg: 'Server error' });
