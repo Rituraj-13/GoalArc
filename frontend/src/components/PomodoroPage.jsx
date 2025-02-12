@@ -398,9 +398,9 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-primary">{stats.work.count}</div>
-                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                     {selectedTodo ? "Sessions for this task" : "Total sessions"} today
-                                </p> */}
+                                </p>
                             </CardContent>
                         </Card>
 
@@ -413,9 +413,9 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-primary">{stats.shortBreak.count}</div>
-                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                     {selectedTodo ? "Breaks for this task" : "Total breaks"} today
-                                </p> */}
+                                </p>
                             </CardContent>
                         </Card>
 
@@ -428,9 +428,9 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-primary">{formatDuration(stats.work.totalDuration)}</div>
-                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                     {selectedTodo ? "Time spent on task" : "Total time"} today
-                                </p> */}
+                                </p>
                             </CardContent>
                         </Card>
                     </motion.div>
