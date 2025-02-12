@@ -67,13 +67,13 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
                   ? "hover:bg-gray-800 text-gray-300"
                   : "hover:bg-gray-100 text-gray-600"
               )}
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              // onClick={() => setIsCollapsed(!isCollapsed)}
             >
-              {isCollapsed ? (
+              {/* {isCollapsed ? (
                 <ChevronRight className="h-5 w-5" />
               ) : (
                 <SidebarClose className="h-5 w-5" />
-              )}
+              )} */}
             </Button>
           </div>
 
