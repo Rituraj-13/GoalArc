@@ -58,7 +58,7 @@ const PomodoroSettings = ({ onClose }) => {
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="shortBreakDuration" className="text-right">
-            Short Break (min)
+            Break Duration (min)
           </Label>
           <Input
             id="shortBreakDuration"
@@ -68,36 +68,6 @@ const PomodoroSettings = ({ onClose }) => {
             onChange={(e) => setTempSettings({
               ...tempSettings,
               shortBreakDuration: parseInt(e.target.value)
-            })}
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="longBreakDuration" className="text-right">
-            Long Break (min)
-          </Label>
-          <Input
-            id="longBreakDuration"
-            type="number"
-            className="col-span-3"
-            value={tempSettings.longBreakDuration}
-            onChange={(e) => setTempSettings({
-              ...tempSettings,
-              longBreakDuration: parseInt(e.target.value)
-            })}
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="sessionsUntilLongBreak" className="text-right">
-            Sessions until long break
-          </Label>
-          <Input
-            id="sessionsUntilLongBreak"
-            type="number"
-            className="col-span-3"
-            value={tempSettings.sessionsUntilLongBreak}
-            onChange={(e) => setTempSettings({
-              ...tempSettings,
-              sessionsUntilLongBreak: parseInt(e.target.value)
             })}
           />
         </div>

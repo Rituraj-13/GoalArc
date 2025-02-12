@@ -14,14 +14,6 @@ const pomodoroSettingsSchema = new mongoose.Schema({
     type: Number,
     default: 5
   },
-  longBreakDuration: {
-    type: Number,
-    default: 15
-  },
-  sessionsUntilLongBreak: {
-    type: Number,
-    default: 4
-  },
   autoStartBreaks: {
     type: Boolean,
     default: false

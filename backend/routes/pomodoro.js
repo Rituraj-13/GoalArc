@@ -34,8 +34,6 @@ router.put('/settings', async (req, res) => {
         const {
             workDuration,
             shortBreakDuration,
-            longBreakDuration,
-            sessionsUntilLongBreak,
             autoStartBreaks,
             autoStartPomodoros,
             notifications,
@@ -47,8 +45,6 @@ router.put('/settings', async (req, res) => {
             {
                 workDuration,
                 shortBreakDuration,
-                longBreakDuration,
-                sessionsUntilLongBreak,
                 autoStartBreaks,
                 autoStartPomodoros,
                 notifications,
@@ -131,8 +127,7 @@ router.get('/stats', async (req, res) => {
                 console.error('Invalid todoId:', error);
                 return res.json({
                     work: { count: 0, totalDuration: 0 },
-                    shortBreak: { count: 0, totalDuration: 0 },
-                    longBreak: { count: 0, totalDuration: 0 }
+                    shortBreak: { count: 0, totalDuration: 0 }
                 });
             }
         }
@@ -159,8 +154,7 @@ router.get('/stats', async (req, res) => {
         // Create default structure for stats
         const defaultStats = {
             work: { count: 0, totalDuration: 0 },
-            shortBreak: { count: 0, totalDuration: 0 },
-            longBreak: { count: 0, totalDuration: 0 }
+            shortBreak: { count: 0, totalDuration: 0 }
         };
 
         // Fill in actual values from database

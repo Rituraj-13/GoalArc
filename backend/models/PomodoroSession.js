@@ -25,7 +25,7 @@ const pomodoroSessionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['work', 'shortBreak', 'longBreak'],
+        enum: ['work', 'shortBreak'],
         required: true
     },
     completed: {

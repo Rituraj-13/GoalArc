@@ -8,8 +8,6 @@ export const PomodoroProvider = ({ children }) => {
   const [settings, setSettings] = useState({
     workDuration: 25,
     shortBreakDuration: 5,
-    longBreakDuration: 15,
-    sessionsUntilLongBreak: 4,
     autoStartBreaks: false,
     autoStartPomodoros: false,
     notifications: true,
@@ -148,9 +146,7 @@ export const PomodoroProvider = ({ children }) => {
         type: currentSession,
         duration: currentSession === 'work'
           ? settings.workDuration
-          : currentSession === 'longBreak'
-            ? settings.longBreakDuration
-            : settings.shortBreakDuration,
+          : settings.shortBreakDuration,
         completed: true,
         endTime: new Date()
       };
@@ -160,10 +156,8 @@ export const PomodoroProvider = ({ children }) => {
       });
 
       if (currentSession === 'work') {
-        const newCompletedSessions = await fetchTaskCompletedSessions(selectedTodo?._id);
-        const isLongBreak = newCompletedSessions % settings.sessionsUntilLongBreak === 0;
-        setCurrentSession(isLongBreak ? 'longBreak' : 'shortBreak');
-        setTimeLeft(isLongBreak ? settings.longBreakDuration * 60 : settings.shortBreakDuration * 60);
+        setCurrentSession('shortBreak');
+        setTimeLeft(settings.shortBreakDuration * 60);
 
         if (settings.autoStartBreaks) {
           setIsActive(true);
