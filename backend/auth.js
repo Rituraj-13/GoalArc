@@ -9,6 +9,7 @@ import streakCheck from "./Middlewares/StreakCheck.js";
 import { sendVerificationEmail } from './services/emailService.js';
 import cron from 'node-cron';
 import AuthMiddleware from './Middlewares/AuthMiddleware.js';
+import pomodoroRouter from './routes/pomodoro.js';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(cors())
 app.use(streakCheck);
 app.use('/todos', router);
+app.use('/pomodoro', pomodoroRouter);
 const port = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 const DB_URL = process.env.MONGO_URL

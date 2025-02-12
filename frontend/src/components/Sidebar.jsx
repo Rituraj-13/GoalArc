@@ -12,7 +12,8 @@ import {
   Sun,
   ChevronRight,
   LogOut,
-  Flame
+  Flame,
+  Timer
 } from "lucide-react";
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -67,7 +68,7 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
                   ? "hover:bg-gray-800 text-gray-300"
                   : "hover:bg-gray-100 text-gray-600"
               )}
-              // onClick={() => setIsCollapsed(!isCollapsed)}
+            // onClick={() => setIsCollapsed(!isCollapsed)}
             >
               {/* {isCollapsed ? (
                 <ChevronRight className="h-5 w-5" />
@@ -82,7 +83,8 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
             {[
               { path: '/overview', icon: LayoutDashboard, label: 'Overview' },
               { path: '/calendar', icon: Calendar, label: 'Calendar' },
-              { path: '/todos', icon: CheckSquare, label: 'To do list' },
+              { path: '/todos', icon: CheckSquare, label: 'My Tasks' },
+              { path: '/pomodoro', icon: Timer, label: 'Pomodoro' },
               { path: '/streaks', icon: Flame, label: 'Streaks' },
             ].map((item) => (
               <Button

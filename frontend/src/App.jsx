@@ -10,6 +10,8 @@ import LandingPage from './components/LandingPage'
 import { ThemeProvider } from './components/ThemeProvider'
 import StreaksPage from './components/StreaksPage'
 import Settings from './components/Settings'
+import PomodoroPage from './components/PomodoroPage'
+import { PomodoroProvider } from './contexts/PomodoroContext'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,31 +39,39 @@ export default function App({ children }) {
 
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
+      <PomodoroProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
 
-          <Route path="/auth" element={
-            isAuthenticated ?
-              <Navigate to="/todos" /> :
-              <AuthForm setIsAuthenticated={setIsAuthenticated} />
-          } />
+            <Route path="/auth" element={
+              isAuthenticated ?
+                <Navigate to="/todos" /> :
+                <AuthForm setIsAuthenticated={setIsAuthenticated} />
+            } />
 
-          <Route path="/todos" element={
-            isAuthenticated ?
-              <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
-              <Navigate to="/auth" />
-          } />
+            <Route path="/todos" element={
+              isAuthenticated ?
+                <TodoInterface setIsAuthenticated={setIsAuthenticated} /> :
+                <Navigate to="/auth" />
+            } />
 
-          <Route path="/streaks" element={
-            isAuthenticated ?
-              <StreaksPage setIsAuthenticated={setIsAuthenticated} /> :
-              <Navigate to="/auth" />
-          } />
+            <Route path="/streaks" element={
+              isAuthenticated ?
+                <StreaksPage setIsAuthenticated={setIsAuthenticated} /> :
+                <Navigate to="/auth" />
+            } />
 
-          <Route path="/settings" element={<Settings setIsAuthenticated={setIsAuthenticated} />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/pomodoro" element={
+              isAuthenticated ?
+                <PomodoroPage setIsAuthenticated={setIsAuthenticated} /> :
+                <Navigate to="/auth" />
+            } />
+
+            <Route path="/settings" element={<Settings setIsAuthenticated={setIsAuthenticated} />} />
+          </Routes>
+        </BrowserRouter>
+      </PomodoroProvider>
     </ThemeProvider>
   )
 }
