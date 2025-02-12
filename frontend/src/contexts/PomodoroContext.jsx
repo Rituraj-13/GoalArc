@@ -13,17 +13,18 @@ export const PomodoroProvider = ({ children }) => {
     notifications: true,
     soundEnabled: true
   });
-
-  const [timeLeft, setTimeLeft] = useState(settings.workDuration * 60);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [currentSession, setCurrentSession] = useState('work');
   const [completedSessions, setCompletedSessions] = useState(0);
   const [selectedTodo, setSelectedTodo] = useState(null);
+  const [taskCompletedSessions, setTaskCompletedSessions] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const timerRef = useRef(null);
   const audioRef = useRef(new Audio('/notification.mp3'));
   const [isPlaying, setIsPlaying] = useState(false);
   const isHandlingSession = useRef(false);
-  const [taskCompletedSessions, setTaskCompletedSessions] = useState(0);
 
   const fetchTaskCompletedSessions = async (todoId) => {
     if (!todoId) return 0;
@@ -55,17 +56,47 @@ export const PomodoroProvider = ({ children }) => {
           completed: true
         }
       });
-      setCompletedSessions(response.data.count % settings.sessionsUntilLongBreak);
+      setCompletedSessions(response.data.count);
     } catch (error) {
       console.error('Failed to fetch completed sessions:', error);
     }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('todoToken');
+      const response = await axios.get('http://localhost:3000/pomodoro/settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setSettings(response.data);
+      if (timeLeft === 25 * 60) {
+        setTimeLeft(response.data.workDuration * 60);
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if (settings?.notifications && "Notification" in window) {
+      await Notification.requestPermission();
+    }
+  };
+
+  const stopNotification = () => {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    setIsPlaying(false);
   };
 
   useEffect(() => {
     const initializePomodoro = async () => {
       await fetchSettings();
       await fetchCompletedSessions();
-      requestNotificationPermission();
+      await requestNotificationPermission();
     };
 
     initializePomodoro();
@@ -76,31 +107,6 @@ export const PomodoroProvider = ({ children }) => {
       audioRef.current.loop = false;
     };
   }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const token = localStorage.getItem('todoToken');
-      const response = await axios.get('http://localhost:3000/pomodoro/settings', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setSettings(response.data);
-      setTimeLeft(response.data.workDuration * 60);
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-    }
-  };
-
-  const requestNotificationPermission = async () => {
-    if (settings.notifications && "Notification" in window) {
-      await Notification.requestPermission();
-    }
-  };
-
-  const stopNotification = () => {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    setIsPlaying(false);
-  };
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
@@ -188,6 +194,10 @@ export const PomodoroProvider = ({ children }) => {
     }
   };
 
+  if (isLoading) {
+    return null;
+  }
+
   const value = {
     settings,
     setSettings,
@@ -204,7 +214,9 @@ export const PomodoroProvider = ({ children }) => {
     handleSessionComplete,
     fetchTaskCompletedSessions,
     taskCompletedSessions,
-    setTaskCompletedSessions
+    setTaskCompletedSessions,
+    fetchSettings,
+    isLoading
   };
 
   return (

@@ -13,7 +13,7 @@ import { toast } from 'react-hot-toast';
 import { usePomodoro } from '../contexts/PomodoroContext';
 
 const PomodoroSettings = ({ onClose }) => {
-  const { settings, setSettings } = usePomodoro();
+  const { settings, setSettings, setTimeLeft, currentSession } = usePomodoro();
   const [tempSettings, setTempSettings] = React.useState(settings);
 
   const handleSave = async () => {
@@ -26,12 +26,19 @@ const PomodoroSettings = ({ onClose }) => {
           headers: { 'Authorization': `Bearer ${token}` }
         }
       );
-      
+
       setSettings(response.data);
-      toast.success('Settings saved');
-      onClose();
+
+      const newTimeLeft = currentSession === 'work'
+        ? response.data.workDuration * 60
+        : response.data.shortBreakDuration * 60;
+      setTimeLeft(newTimeLeft);
+
+      toast.success('Settings saved successfully!');
+      if (onClose) onClose();
     } catch (error) {
-      toast.error('Failed to save settings');
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings. Please try again.');
     }
   };
 

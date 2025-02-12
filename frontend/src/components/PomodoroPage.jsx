@@ -1,185 +1,444 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import PomodoroTimer from './PomodoroTimer';
-import { useTheme } from './ThemeProvider';
-import { cn } from '@/lib/utils';
-import axios from 'axios';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, CheckCircle2, Coffee } from 'lucide-react';
-import { usePomodoro } from '../contexts/PomodoroContext';
+// import React, { useState, useEffect } from 'react';
+// import Sidebar from './Sidebar';
+// import PomodoroTimer from './PomodoroTimer';
+// import { useTheme } from './ThemeProvider';
+// import { cn } from '@/lib/utils';
+// import axios from 'axios';
+// import {
+//     Select,
+//     SelectContent,
+//     SelectItem,
+//     SelectTrigger,
+//     SelectValue,
+// } from "@/components/ui/select";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Clock, CheckCircle2, Coffee } from 'lucide-react';
+// import { usePomodoro } from '../contexts/PomodoroContext';
+
+// const PomodoroPage = ({ setIsAuthenticated }) => {
+//     const { isDark } = useTheme();
+//     const { selectedTodo, setSelectedTodo } = usePomodoro();
+//     const [todos, setTodos] = useState([]);
+//     const [stats, setStats] = useState({
+//         work: { count: 0, totalDuration: 0 },
+//         shortBreak: { count: 0, totalDuration: 0 }
+//     });
+
+//     // Add effect to listen for session completion
+//     useEffect(() => {
+//         const handleSessionComplete = () => {
+//             fetchStats();
+//         };
+
+//         window.addEventListener('pomodoroSessionCompleted', handleSessionComplete);
+
+//         return () => {
+//             window.removeEventListener('pomodoroSessionCompleted', handleSessionComplete);
+//         };
+//     }, [selectedTodo]); // Add selectedTodo as dependency since fetchStats uses it
+
+//     useEffect(() => {
+//         fetchTodos();
+//         fetchStats();
+//     }, [selectedTodo]);
+
+//     const fetchTodos = async () => {
+//         try {
+//             const token = localStorage.getItem('todoToken');
+//             const response = await axios.get('http://localhost:3000/todos', {
+//                 headers: { 'Authorization': `Bearer ${token}` }
+//             });
+//             setTodos(response.data.filter(todo => !todo.completed));
+//         } catch (error) {
+//             console.error('Failed to fetch todos:', error);
+//         }
+//     };
+
+//     const fetchStats = async () => {
+//         try {
+//             const token = localStorage.getItem('todoToken');
+//             // Add logging to debug the request
+//             console.log('Fetching stats for todoId:', selectedTodo?._id);
+
+//             const response = await axios.get('http://localhost:3000/pomodoro/stats', {
+//                 headers: { 'Authorization': `Bearer ${token}` },
+//                 params: {
+//                     todoId: selectedTodo?._id || null
+//                 }
+//             });
+
+//             // Log the response
+//             console.log('Stats response:', response.data);
+
+//             setStats(response.data);
+//         } catch (error) {
+//             console.error('Failed to fetch stats:', error.response?.data || error);
+//             setStats({
+//                 work: { count: 0, totalDuration: 0 },
+//                 shortBreak: { count: 0, totalDuration: 0 }
+//             });
+//         }
+//     };
+
+//     const formatDuration = (minutes) => {
+//         const hours = Math.floor(minutes / 60);
+//         const mins = minutes % 60;
+//         return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+//     };
+
+//     return (
+//         <div className="flex h-screen">
+//             <Sidebar setIsAuthenticated={setIsAuthenticated} />
+//             <div className="flex-1 overflow-auto bg-background">
+//                 <div className="max-w-4xl mx-auto">
+//                     <div className="p-8">
+//                         <h1 className={cn(
+//                             "text-4xl font-bold mb-8",
+//                             isDark ? "text-gray-100" : "text-gray-900"
+//                         )}>
+//                             Pomodoro Timer
+//                         </h1>
+
+//                         {/* Task Selection - Updated */}
+//                         <div className="mb-8">
+//                             <label className="block text-sm font-medium mb-2">
+//                                 Select Task
+//                             </label>
+//                             <Select
+//                                 value={selectedTodo?._id || "no-task"}
+//                                 onValueChange={(value) => {
+//                                     if (value === "no-task") {
+//                                         setSelectedTodo(null);
+//                                     } else {
+//                                         const todo = todos.find(t => t._id === value);
+//                                         setSelectedTodo(todo || null);
+//                                     }
+//                                 }}
+//                             >
+//                                 <SelectTrigger className="w-full">
+//                                     <SelectValue placeholder="Choose a task to focus on" />
+//                                 </SelectTrigger>
+//                                 <SelectContent>
+//                                     <SelectItem value="no-task">No task selected</SelectItem>
+//                                     {todos.map(todo => (
+//                                         <SelectItem key={todo._id} value={todo._id}>
+//                                             {todo.title}
+//                                         </SelectItem>
+//                                     ))}
+//                                 </SelectContent>
+//                             </Select>
+//                         </div>
+
+//                         {/* Timer */}
+//                         <div className={cn(
+//                             "rounded-lg p-6 mb-8",
+//                             isDark ? "bg-card" : "bg-white border"
+//                         )}>
+//                             <PomodoroTimer
+//                                 selectedTodo={selectedTodo}
+//                             />
+//                         </div>
+
+//                         {/* Statistics */}
+//                         <div className="grid gap-4 md:grid-cols-2">
+//                             <Card>
+//                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+//                                     <CardTitle className="text-sm font-medium">
+//                                         {selectedTodo ? "Task Focus Time" : "Total Focus Time"}
+//                                     </CardTitle>
+//                                     <Clock className="h-4 w-4 text-muted-foreground" />
+//                                 </CardHeader>
+//                                 <CardContent>
+//                                     <div className="text-2xl font-bold">
+//                                         {formatDuration(stats.work.totalDuration)}
+//                                     </div>
+//                                     <p className="text-xs text-muted-foreground">
+//                                         {stats.work.count} {selectedTodo ? "task " : ""}sessions today
+//                                     </p>
+//                                 </CardContent>
+//                             </Card>
+
+//                             <Card>
+//                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+//                                     <CardTitle className="text-sm font-medium">
+//                                         {selectedTodo ? "Task Short Breaks" : "Total Short Breaks"}
+//                                     </CardTitle>
+//                                     <Coffee className="h-4 w-4 text-muted-foreground" />
+//                                 </CardHeader>
+//                                 <CardContent>
+//                                     <div className="text-2xl font-bold">
+//                                         {formatDuration(stats.shortBreak.totalDuration)}
+//                                     </div>
+//                                     <p className="text-xs text-muted-foreground">
+//                                         {stats.shortBreak.count} {selectedTodo ? "task " : ""}breaks today
+//                                     </p>
+//                                 </CardContent>
+//                             </Card>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default PomodoroPage; 
+
+
+
+"use client"
+
+import { useState, useEffect } from "react"
+import Sidebar from "./Sidebar"
+import PomodoroTimer from "./PomodoroTimer"
+import { useTheme } from "./ThemeProvider"
+import { cn } from "@/lib/utils"
+import axios from "axios"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Clock, Coffee, BarChart, CheckCircle2 } from "lucide-react"
+import { usePomodoro } from "../contexts/PomodoroContext"
+import { motion } from "framer-motion"
+import { Progress } from "@/components/ui/progress"
 
 const PomodoroPage = ({ setIsAuthenticated }) => {
-    const { isDark } = useTheme();
-    const { selectedTodo, setSelectedTodo } = usePomodoro();
-    const [todos, setTodos] = useState([]);
+    const { isDark } = useTheme()
+    const { selectedTodo, setSelectedTodo } = usePomodoro()
+    const [todos, setTodos] = useState([])
     const [stats, setStats] = useState({
         work: { count: 0, totalDuration: 0 },
-        shortBreak: { count: 0, totalDuration: 0 }
-    });
+        shortBreak: { count: 0, totalDuration: 0 },
+    })
 
-    // Add effect to listen for session completion
     useEffect(() => {
         const handleSessionComplete = () => {
-            fetchStats();
-        };
+            fetchStats()
+        }
 
-        window.addEventListener('pomodoroSessionCompleted', handleSessionComplete);
+        window.addEventListener("pomodoroSessionCompleted", handleSessionComplete)
 
         return () => {
-            window.removeEventListener('pomodoroSessionCompleted', handleSessionComplete);
-        };
-    }, [selectedTodo]); // Add selectedTodo as dependency since fetchStats uses it
+            window.removeEventListener("pomodoroSessionCompleted", handleSessionComplete)
+        }
+    }, [])
 
     useEffect(() => {
-        fetchTodos();
-        fetchStats();
-    }, [selectedTodo]);
+        fetchTodos()
+        fetchStats()
+    }, [selectedTodo])
 
     const fetchTodos = async () => {
         try {
-            const token = localStorage.getItem('todoToken');
-            const response = await axios.get('http://localhost:3000/todos', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            setTodos(response.data.filter(todo => !todo.completed));
+            const token = localStorage.getItem("todoToken")
+            const response = await axios.get("http://localhost:3000/todos", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            setTodos(response.data.filter((todo) => !todo.completed))
         } catch (error) {
-            console.error('Failed to fetch todos:', error);
+            console.error("Failed to fetch todos:", error)
         }
-    };
+    }
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('todoToken');
-            // Add logging to debug the request
-            console.log('Fetching stats for todoId:', selectedTodo?._id);
-
-            const response = await axios.get('http://localhost:3000/pomodoro/stats', {
-                headers: { 'Authorization': `Bearer ${token}` },
+            const token = localStorage.getItem("todoToken")
+            const response = await axios.get("http://localhost:3000/pomodoro/stats", {
+                headers: { Authorization: `Bearer ${token}` },
                 params: {
-                    todoId: selectedTodo?._id || null
-                }
-            });
-
-            // Log the response
-            console.log('Stats response:', response.data);
-
-            setStats(response.data);
+                    todoId: selectedTodo?._id || null,
+                },
+            })
+            setStats(response.data)
         } catch (error) {
-            console.error('Failed to fetch stats:', error.response?.data || error);
+            console.error("Failed to fetch stats:", error.response?.data || error)
             setStats({
                 work: { count: 0, totalDuration: 0 },
-                shortBreak: { count: 0, totalDuration: 0 }
-            });
+                shortBreak: { count: 0, totalDuration: 0 },
+            })
         }
-    };
+    }
 
     const formatDuration = (minutes) => {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-    };
+        const hours = Math.floor(minutes / 60)
+        const mins = minutes % 60
+        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+    }
+
+    const calculateProductivityScore = () => {
+        const totalTime = stats.work.totalDuration + stats.shortBreak.totalDuration
+        return totalTime > 0 ? Math.round((stats.work.totalDuration / totalTime) * 100) : 0
+    }
 
     return (
-        <div className="flex h-screen">
+        <div className={cn("flex h-screen transition-colors duration-300", isDark ? "bg-gray-900" : "bg-gray-100")}>
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
-            <div className="flex-1 overflow-auto bg-background">
-                <div className="max-w-4xl mx-auto">
-                    <div className="p-8">
-                        <h1 className={cn(
-                            "text-4xl font-bold mb-8",
-                            isDark ? "text-gray-100" : "text-gray-900"
-                        )}>
-                            Pomodoro Timer
-                        </h1>
+            <div className="flex-1 overflow-auto p-4 md:p-8">
+                <div className="max-w-6xl mx-auto">
+                    {/* <motion.h1
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className={cn("text-5xl font-extrabold mb-12 text-center", isDark ? "text-gray-100" : "text-gray-900")}
+                    >
+                        Pomodoro Timer
+                    </motion.h1> */}
 
-                        {/* Task Selection - Updated */}
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium mb-2">
-                                Select Task
-                            </label>
-                            <Select
-                                value={selectedTodo?._id || "no-task"}
-                                onValueChange={(value) => {
-                                    if (value === "no-task") {
-                                        setSelectedTodo(null);
-                                    } else {
-                                        const todo = todos.find(t => t._id === value);
-                                        setSelectedTodo(todo || null);
-                                    }
-                                }}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Choose a task to focus on" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="no-task">No task selected</SelectItem>
-                                    {todos.map(todo => (
-                                        <SelectItem key={todo._id} value={todo._id}>
-                                            {todo.title}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Timer */}
-                        <div className={cn(
-                            "rounded-lg p-6 mb-8",
-                            isDark ? "bg-card" : "bg-white border"
-                        )}>
-                            <PomodoroTimer
-                                selectedTodo={selectedTodo}
-                            />
-                        </div>
-
-                        {/* Statistics */}
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        {selectedTodo ? "Task Focus Time" : "Total Focus Time"}
+                    <div className="grid gap-8 md:grid-cols-2">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                        >
+                            <Card className="shadow-lg overflow-hidden bg-card">
+                                <CardHeader>
+                                    <CardTitle className="text-2xl font-semibold flex items-center gap-2">
+                                        <Clock className="h-6 w-6 text-primary" />
+                                        Pomodoro Timer
                                     </CardTitle>
-                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <PomodoroTimer selectedTodo={selectedTodo} />
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                            className="space-y-8"
+                        >
+                            <Card className="shadow-lg bg-card">
+                                <CardHeader>
+                                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                                        Select Task
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">
-                                        {formatDuration(stats.work.totalDuration)}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        {stats.work.count} {selectedTodo ? "task " : ""}sessions today
-                                    </p>
+                                    <Select
+                                        value={selectedTodo?._id || "no-task"}
+                                        onValueChange={(value) => {
+                                            if (value === "no-task") {
+                                                setSelectedTodo(null)
+                                            } else {
+                                                const todo = todos.find((t) => t._id === value)
+                                                setSelectedTodo(todo || null)
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Choose a task to focus on" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="no-task">No task selected</SelectItem>
+                                            {todos.map((todo) => (
+                                                <SelectItem key={todo._id} value={todo._id}>
+                                                    {todo.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        {selectedTodo ? "Task Short Breaks" : "Total Short Breaks"}
+                            <Card className="shadow-lg bg-card">
+                                <CardHeader>
+                                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                                        <BarChart className="h-5 w-5 text-primary" />
+                                        Progress Stats
                                     </CardTitle>
-                                    <Coffee className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">
-                                        {formatDuration(stats.shortBreak.totalDuration)}
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between mb-2">
+                                            <span className="text-sm font-medium">Focus Time</span>
+                                            <span className="text-sm font-medium">{formatDuration(stats.work.totalDuration)}</span>
+                                        </div>
+                                        <Progress
+                                            value={stats.work.totalDuration}
+                                            max={stats.work.totalDuration + stats.shortBreak.totalDuration}
+                                            className="h-2"
+                                        />
                                     </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        {stats.shortBreak.count} {selectedTodo ? "task " : ""}breaks today
-                                    </p>
+                                    <div>
+                                        <div className="flex justify-between mb-2">
+                                            <span className="text-sm font-medium">Break Time</span>
+                                            <span className="text-sm font-medium">{formatDuration(stats.shortBreak.totalDuration)}</span>
+                                        </div>
+                                        <Progress
+                                            value={stats.shortBreak.totalDuration}
+                                            max={stats.work.totalDuration + stats.shortBreak.totalDuration}
+                                            className="h-2"
+                                        />
+                                    </div>
+                                    <div className="pt-4 border-t">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-lg font-semibold">Productivity Score</span>
+                                            <span className="text-2xl font-bold text-primary">{calculateProductivityScore()}%</span>
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
-                        </div>
+                        </motion.div>
                     </div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.6 }}
+                        className="mt-8 grid gap-8 md:grid-cols-3"
+                    >
+                        <Card className="shadow-lg bg-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-lg font-semibold">
+                                    {selectedTodo ? "Task Focus Sessions" : "Total Focus Sessions"}
+                                </CardTitle>
+                                <Clock className="h-5 w-5 text-primary" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-primary">{stats.work.count}</div>
+                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                    {selectedTodo ? "Sessions for this task" : "Total sessions"} today
+                                </p> */}
+                            </CardContent>
+                        </Card>
+
+                        <Card className="shadow-lg bg-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-lg font-semibold">
+                                    {selectedTodo ? "Task Break Sessions" : "Total Break Sessions"}
+                                </CardTitle>
+                                <Coffee className="h-5 w-5 text-primary" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-primary">{stats.shortBreak.count}</div>
+                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                    {selectedTodo ? "Breaks for this task" : "Total breaks"} today
+                                </p> */}
+                            </CardContent>
+                        </Card>
+
+                        <Card className="shadow-lg bg-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-lg font-semibold">
+                                    {selectedTodo ? "Task Focus Time" : "Total Focus Time"}
+                                </CardTitle>
+                                <BarChart className="h-5 w-5 text-primary" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold text-primary">{formatDuration(stats.work.totalDuration)}</div>
+                                {/* <p className="text-sm text-muted-foreground mt-1">
+                                    {selectedTodo ? "Time spent on task" : "Total time"} today
+                                </p> */}
+                            </CardContent>
+                        </Card>
+                    </motion.div>
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default PomodoroPage; 
+export default PomodoroPage
+

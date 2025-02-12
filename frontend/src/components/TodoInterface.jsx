@@ -20,7 +20,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
+import { motion } from 'framer-motion';
 const TodoInterface = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState('');
@@ -375,27 +375,43 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 <main className="p-8 pb-48">
                     {/* Greeting */}
                     <div className="mb-8">
-                        <h1 className="text-4xl font-bold text-foreground">
-                            {getGreeting()}, {userName}! 👋
-                        </h1>
-                        <p className="text-muted-foreground mt-2">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                        >
+                            <h1 className="text-4xl font-bold text-foreground">
+                                {getGreeting()}, {userName}! 👋
+                            </h1>
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                            className="text-muted-foreground mt-2"
+                        >
                             {new Date().toLocaleDateString('en-US', {
                                 weekday: 'long',
                                 day: 'numeric',
                                 month: 'long',
                                 year: 'numeric'
                             })}
-                        </p>
+                        </motion.div>
                     </div>
 
                     {/* Todos Section */}
                     <div className="mb-8">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-semibold text-foreground">
+                            <motion.h2
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                className="text-2xl font-semibold text-foreground"
+                            >
                                 {selectedFilter === "today" && "Due Today 🙇"}
                                 {selectedFilter === "tomorrow" && "Due Tomorrow ⌛"}
                                 {selectedFilter === "all" && "All Tasks 🎯"}
-                            </h2>
+                            </motion.h2>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -435,7 +451,12 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                             </DropdownMenu>
                         </div>
                         {getFilteredTodos().length > 0 ? (
-                            <div className="space-y-3">
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                className="space-y-3"
+                            >
                                 {sortTodos(getFilteredTodos()).map(todo => (
                                     <TodoSheet
                                         key={todo._id}
@@ -445,17 +466,23 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                                         onToggleComplete={handleToggleTodo}
                                     />
                                 ))}
-                            </div>
+                            </motion.div>
                         ) : (
-                            <div className="bg-card border-border rounded-xl p-8 text-center shadow-sm">
-                                <div className="mb-4">
-                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                                        <Calendar className="w-8 h-8 text-primary" />
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                            >
+                                <div className="bg-card border-border rounded-xl p-8 text-center shadow-sm">
+                                    <div className="mb-4">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                                            <Calendar className="w-8 h-8 text-primary" />
+                                        </div>
                                     </div>
+                                    <h3 className="text-xl font-semibold text-foreground mb-2">No tasks yet</h3>
+                                    <p className="text-muted-foreground mb-6">Create your first task to get started on your productivity journey!</p>
                                 </div>
-                                <h3 className="text-xl font-semibold text-foreground mb-2">No tasks yet</h3>
-                                <p className="text-muted-foreground mb-6">Create your first task to get started on your productivity journey!</p>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
                 </main>
@@ -467,7 +494,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                         ? "left-[calc(50%+32px)]" // 64px/2 = 32px (collapsed sidebar width is 64px)
                         : "left-[calc(50%+125px)]" // 250px/2 = 125px (expanded sidebar width is 250px)
                 )}>
-                    <button
+                    <motion.button
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
                         onClick={() => setIsModalOpen(true)}
                         className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors shadow-lg"
                     >
@@ -478,7 +508,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                         <span className="text-primary-foreground/70">
                             <ArrowBigRightDashIcon size={20} />
                         </span>
-                    </button>
+                    </motion.button>
                 </div>
 
                 {/* Quote - Fixed at bottom */}

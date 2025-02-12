@@ -32,6 +32,7 @@ const PomodoroTimer = () => {
   const { isDark } = useTheme();
   const [notificationInterval, setNotificationInterval] = useState(null);
   const [taskCompletedSessions, setTaskCompletedSessions] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -61,6 +62,11 @@ const PomodoroTimer = () => {
   // Add function to trigger stats update
   const triggerStatsUpdate = () => {
     window.dispatchEvent(new Event('pomodoroSessionCompleted'));
+  };
+
+  const handleCloseSettings = () => {
+    setIsSettingsOpen(false);
+    stopNotification();
   };
 
   return (
@@ -127,9 +133,9 @@ const PomodoroTimer = () => {
         >
           <RotateCcw className="h-4 w-4" />
         </Button>
-        <Sheet>
+        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
               <SettingsIcon className="h-4 w-4" />
             </Button>
           </SheetTrigger>
@@ -137,12 +143,7 @@ const PomodoroTimer = () => {
             <SheetHeader>
               <SheetTitle>Timer Settings</SheetTitle>
             </SheetHeader>
-            <PomodoroSettings
-              onClose={() => {
-                stopNotification();
-                document.querySelector('[data-trigger]').click();
-              }}
-            />
+            <PomodoroSettings onClose={handleCloseSettings} />
           </SheetContent>
         </Sheet>
 
@@ -166,7 +167,7 @@ const PomodoroTimer = () => {
       )}
 
       {/* Selected Todo */}
-      {selectedTodo && (
+      {/* {selectedTodo && (
         <div className={cn(
           "w-full p-4 rounded-lg",
           isDark ? "bg-card" : "bg-white border"
@@ -174,7 +175,7 @@ const PomodoroTimer = () => {
           <h3 className="font-medium">Current Task</h3>
           <p className="text-sm text-muted-foreground">{selectedTodo.title}</p>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
