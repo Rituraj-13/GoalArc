@@ -23,6 +23,7 @@ export const PomodoroProvider = ({ children }) => {
   const audioRef = useRef(new Audio('/notification.mp3'));
   const [isPlaying, setIsPlaying] = useState(false);
   const isHandlingSession = useRef(false);
+  const [taskCompletedSessions, setTaskCompletedSessions] = useState(0);
 
   const fetchTaskCompletedSessions = async (todoId) => {
     if (!todoId) return 0;
@@ -155,6 +156,10 @@ export const PomodoroProvider = ({ children }) => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      if (currentSession === 'work' && selectedTodo) {
+        setTaskCompletedSessions(prev => prev + 1);
+      }
+
       if (currentSession === 'work') {
         setCurrentSession('shortBreak');
         setTimeLeft(settings.shortBreakDuration * 60);
@@ -171,7 +176,6 @@ export const PomodoroProvider = ({ children }) => {
         }
       }
 
-      // Emit an event that session is completed
       window.dispatchEvent(new Event('pomodoroSessionCompleted'));
 
     } catch (error) {
@@ -198,7 +202,9 @@ export const PomodoroProvider = ({ children }) => {
     isPlaying,
     stopNotification,
     handleSessionComplete,
-    fetchTaskCompletedSessions
+    fetchTaskCompletedSessions,
+    taskCompletedSessions,
+    setTaskCompletedSessions
   };
 
   return (

@@ -50,13 +50,13 @@ const PomodoroTimer = () => {
 
   useEffect(() => {
     const updateTaskSessions = async () => {
-      if (selectedTodo) {
+      if (selectedTodo && !isActive) {
         const count = await fetchTaskCompletedSessions(selectedTodo._id);
         setTaskCompletedSessions(count);
       }
     };
     updateTaskSessions();
-  }, [selectedTodo, fetchTaskCompletedSessions]);
+  }, [selectedTodo, fetchTaskCompletedSessions, isActive]);
 
   // Add function to trigger stats update
   const triggerStatsUpdate = () => {
