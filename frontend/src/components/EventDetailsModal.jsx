@@ -11,7 +11,7 @@ const EventDetailsModal = ({ event, isOpen, onClose, isDark }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 onClick={onClose}
             />

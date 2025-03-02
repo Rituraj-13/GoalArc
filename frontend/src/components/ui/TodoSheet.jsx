@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -8,7 +8,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash, Check, X, WandSparkles, Calendar } from 'lucide-react'
+import { Pencil, Trash, Check, X, WandSparkles, Calendar, Clock, BarChart, CheckCircle2, Timer } from 'lucide-react'
 import MDEditor from "@uiw/react-md-editor"
 import dayjs from 'dayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -20,6 +20,20 @@ import { toast } from 'react-hot-toast'
 import { useTheme } from "@/components/ThemeProvider"
 import { cn } from "@/lib/utils"
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlignLeft } from 'lucide-react'
+import axios from 'axios'
+import { usePomodoro } from '@/contexts/PomodoroContext'
 
 export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
   const { isDark } = useTheme();
@@ -30,6 +44,12 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
   const [isLoading, setIsLoading] = useState(false);
   const closeRef = React.useRef(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { fetchTaskCompletedSessions } = usePomodoro();
+  const [pomodoroStats, setPomodoroStats] = useState({
+    completedSessions: 0,
+    totalFocusTime: 0
+  });
 
   const formatDate = (date) => {
     if (!date) return '';
@@ -152,6 +172,38 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     return isOverdue ? "Overdue" : "Pending";
   };
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('todoToken');
+        const sessions = await fetchTaskCompletedSessions(todo._id);
+
+        // Fetch total focus time
+        const response = await axios.get('http://localhost:3000/pomodoro/stats', {
+          headers: { 'Authorization': `Bearer ${token}` },
+          params: { todoId: todo._id }
+        });
+        console.log("Response: ", response);
+        console.log("sessions: ", sessions);
+
+        setPomodoroStats({
+          completedSessions: sessions,
+          totalFocusTime: response.data.work.totalDuration || 0
+        });
+      } catch (error) {
+        console.error('Failed to fetch pomodoro stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, [todo._id]);
+
+  const formatDuration = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -222,10 +274,13 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(todo._id);
+                  setShowDeleteConfirm(true);
                 }}
                 className={cn(
-                  "opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded-full",
+                  "p-1.5 rounded-full transition-all",
+                  isMobile
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100",
                   isDark
                     ? "hover:bg-red-900/20"
                     : "hover:bg-red-50"
@@ -245,12 +300,11 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
 
       <SheetContent className={cn(
         "w-[95vw] sm:w-[600px] md:w-[800px] lg:w-[1000px] overflow-y-auto",
-        isDark
-          ? "bg-card border-border"
-          : "bg-white"
+        isDark ? "bg-card border-border" : "bg-white"
       )}>
         <div className="h-full">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto space-y-8">
+            {/* Title Section */}
             {isEditing ? (
               <div className="space-y-6">
                 <div className="flex items-start justify-between mb-8">
@@ -299,9 +353,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                   size="icon"
                   onClick={() => setIsEditing(true)}
                   className={cn(
-                    isDark
-                      ? "hover:bg-secondary"
-                      : "hover:bg-gray-100"
+                    isDark ? "hover:bg-secondary" : "hover:bg-gray-100"
                   )}
                 >
                   <Pencil className="h-4 w-4" />
@@ -309,31 +361,70 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
               </div>
             )}
 
-            <div className="space-y-8">
-              {/* Status */}
-              <div className="flex items-center gap-2">
-                <span className={cn(
-                  "text-lg font-semibold",
-                  isDark ? "text-gray-300" : "text-gray-700"
-                )}>
-                  Status:
-                </span>
+            {/* Stats Grid */}
+            {!isEditing && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <Card className="shadow-sm bg-card">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-semibold">
+                      Pomodoro Sessions
+                    </CardTitle>
+                    <Timer className="h-5 w-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      {pomodoroStats.completedSessions}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Completed focus sessions
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm bg-card">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-lg font-semibold">
+                      Total Focus Time
+                    </CardTitle>
+                    <Clock className="h-5 w-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      {formatDuration(pomodoroStats.totalFocusTime)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Time spent on this task
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Status */}
+            <Card className="shadow-sm bg-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-semibold">Status</CardTitle>
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent className="flex items-center gap-2">
                 <span className={cn(
                   "inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-medium",
                   getStatusStyles(todo)
                 )}>
                   {getStatusText(todo)}
                 </span>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Due Date */}
-              <div className="flex flex-col gap-2">
-                <span className={cn(
-                  "text-lg font-semibold",
-                  isDark ? "text-gray-300" : "text-gray-700"
-                )}>
+            {/* Due Date */}
+            <Card className="shadow-sm bg-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-semibold">
                   {todo.completed ? '🎉 Completed on:' : '⏰ Due:'}
-                </span>
+                </CardTitle>
+                <Calendar className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
                 {isEditing ? (
                   <div className={cn(
                     "rounded-lg border",
@@ -413,21 +504,18 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     {formatFullDate(todo.dueDate)}
                   </p>
                 )}
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Description */}
-              <div className={cn(
-                "prose prose-slate max-w-none",
-                isDark && "prose-invert"
-              )}>
-                <div className="mb-3">
-                  <span className={cn(
-                    "text-lg font-semibold",
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  )}>
-                    📝 Description
-                  </span>
-                </div>
+            {/* Description */}
+            <Card className="shadow-sm bg-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-semibold">
+                  📝 Description
+                </CardTitle>
+                <AlignLeft className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
                 {isEditing ? (
                   <MDEditor
                     value={editDesc}
@@ -481,16 +569,60 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       "italic",
                       isDark ? "text-gray-400" : "text-gray-500"
                     )}>
-                      ✏️ No description provided
+                    No description provided
                     </p>
                   )
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
           <SheetClose ref={closeRef} className="hidden" />
         </div>
       </SheetContent>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className={cn(
+          "sm:max-w-[425px]",
+          isDark ? "bg-card border-border" : "bg-white"
+        )}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className={cn(
+              "text-lg font-semibold",
+              isDark ? "text-gray-100" : "text-gray-900"
+            )}>
+              Delete Task
+            </AlertDialogTitle>
+            <AlertDialogDescription className={cn(
+              "text-sm",
+              isDark ? "text-gray-400" : "text-gray-500"
+            )}>
+              Are you sure you want to delete this task? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className={cn(
+              "border",
+              isDark
+                ? "bg-card hover:bg-card/70 border-border text-gray-300"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+            )}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(todo._id);
+                setShowDeleteConfirm(false);
+              }}
+              className={cn(
+                "bg-red-500 hover:bg-red-600 text-white",
+                isDark && "bg-red-600 hover:bg-red-700"
+              )}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 } 
