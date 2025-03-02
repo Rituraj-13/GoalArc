@@ -19,6 +19,7 @@ import { commands } from "@uiw/react-md-editor"
 import { toast } from 'react-hot-toast'
 import { useTheme } from "@/components/ThemeProvider"
 import { cn } from "@/lib/utils"
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
   const { isDark } = useTheme();
@@ -28,6 +29,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
   const [editDate, setEditDate] = useState(dayjs(todo.dueDate));
   const [isLoading, setIsLoading] = useState(false);
   const closeRef = React.useRef(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const formatDate = (date) => {
     if (!date) return '';
@@ -108,53 +110,53 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     },
   };
 
-  const getStatusDisplay = () => {
+  const getStatusStyles = (todo) => {
+    const baseStyles = "min-w-[100px] text-center";
+
     if (todo.completed) {
-      return (
-        <span className={cn(
-          "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
-          isDark
-            ? "bg-green-900/30 text-green-300"
-            : "bg-green-100 text-green-800"
-        )}>
-          Completed
-        </span>
+      return cn(
+        baseStyles,
+        "bg-emerald-500/20 text-emerald-500",
+        isDark && "bg-emerald-500/10"
       );
     }
 
-    const now = dayjs();
     const dueDate = dayjs(todo.dueDate);
+    const now = dayjs();
+    const isOverdue = dueDate.isBefore(now);
 
-    if (now.isAfter(dueDate)) {
-      return (
-        <span className={cn(
-          "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
-          isDark
-            ? "bg-red-900/30 text-red-300"
-            : "bg-red-100 text-red-800"
-        )}>
-          Overdue
-        </span>
+    if (isOverdue) {
+      return cn(
+        baseStyles,
+        "bg-red-500/20 text-red-500",
+        isDark && "bg-red-500/10"
       );
     }
 
-    return (
-      <span className={cn(
-        "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
-        isDark
-          ? "bg-blue-900/30 text-blue-300"
-          : "bg-blue-100 text-blue-800"
-      )}>
-        Due
-      </span>
+    return cn(
+      baseStyles,
+      "bg-blue-500/20 text-blue-500",
+      isDark && "bg-blue-500/10"
     );
+  };
+
+  const getStatusText = (todo) => {
+    if (todo.completed) {
+      return "Completed";
+    }
+
+    const dueDate = dayjs(todo.dueDate);
+    const now = dayjs();
+    const isOverdue = dueDate.isBefore(now);
+
+    return isOverdue ? "Overdue" : "Pending";
   };
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <div className={cn(
-          "group w-full cursor-pointer rounded-xl p-4 border transition-all duration-200",
+          "group w-full cursor-pointer rounded-xl p-4 border",
           isDark
             ? "bg-card hover:bg-card/70 border-border"
             : "bg-white hover:bg-gray-50/50 border-gray-200 shadow-sm hover:shadow-md"
@@ -200,16 +202,23 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                 {todo.title}
               </span>
             </div>
-            <div className="flex items-center gap-4">
-              {getStatusDisplay()}
+            <div className="flex items-center gap-2 md:gap-4">
               <span className={cn(
-                "text-sm whitespace-nowrap px-3 py-1 rounded-lg",
-                isDark
-                  ? "bg-secondary text-gray-300"
-                  : "bg-gray-100 text-gray-500"
+                "inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-medium ml-auto md:ml-0",
+                getStatusStyles(todo)
               )}>
-                ⏰ {formatDate(todo.dueDate)}
+                {getStatusText(todo)}
               </span>
+              {!isMobile && (
+                <span className={cn(
+                  "text-sm whitespace-nowrap px-3 py-1 rounded-lg",
+                  isDark
+                    ? "bg-secondary text-gray-300"
+                    : "bg-gray-100 text-gray-500"
+                )}>
+                  ⏰ {formatDate(todo.dueDate)}
+                </span>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -240,7 +249,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
           ? "bg-card border-border"
           : "bg-white"
       )}>
-        <div className="h-full transition-colors duration-200 ease-in-out">
+        <div className="h-full">
           <div className="max-w-3xl mx-auto">
             {isEditing ? (
               <div className="space-y-6">
@@ -309,7 +318,12 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                 )}>
                   Status:
                 </span>
-                {getStatusDisplay()}
+                <span className={cn(
+                  "inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-medium",
+                  getStatusStyles(todo)
+                )}>
+                  {getStatusText(todo)}
+                </span>
               </div>
 
               {/* Due Date */}

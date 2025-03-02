@@ -66,85 +66,68 @@ const CalendarPage = ({ setIsAuthenticated }) => {
     return (
         <div className="flex h-screen">
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
-            <div className="flex-1 overflow-auto bg-background p-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="max-w-7xl mx-auto"
-                >
-                    <h1 className="text-4xl font-bold mb-8 text-foreground">Calendar View 📅</h1>
+            <div className="flex-1 overflow-auto bg-background p-4 md:p-8">
+                <div className="pt-14 md:pt-0">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="max-w-7xl mx-auto"
+                    >
+                        <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">
+                            Calendar View 📅
+                        </h1>
 
-                    <div className={cn(
-                        "bg-card rounded-xl shadow-lg p-6 border border-border",
-                        isDark && [
-                            // Toolbar styles
-                            "[&_.fc-toolbar-title]:text-foreground",
-                            "[&_.fc-button]:!bg-primary",
-                            "[&_.fc-button]:!border-primary",
-                            "[&_.fc-button]:!text-primary-foreground",
-                            "[&_.fc-button-active]:!bg-primary/80",
+                        <div className={cn(
+                            "bg-card rounded-xl shadow-lg p-3 md:p-6 border border-border",
+                            isDark && [
+                                // Toolbar styles
+                                "[&_.fc-toolbar]:flex-col [&_.fc-toolbar]:gap-4 md:[&_.fc-toolbar]:flex-row",
+                                "[&_.fc-toolbar-title]:text-xl md:[&_.fc-toolbar-title]:text-2xl",
+                                "[&_.fc-toolbar-title]:text-foreground",
+                                "[&_.fc-button]:!bg-primary",
+                                "[&_.fc-button]:!border-primary",
+                                "[&_.fc-button]:!text-primary-foreground",
+                                "[&_.fc-button-active]:!bg-primary/80",
 
-                            // Header cells
-                            "[&_.fc-col-header-cell]:!bg-gray-800",
-                            "[&_.fc-col-header-cell-cushion]:!text-gray-200",
+                                // Make calendar more compact on mobile
+                                "[&_.fc-view]:text-sm md:[&_.fc-view]:text-base",
+                                "[&_.fc-day]:p-1 md:[&_.fc-day]:p-2",
 
-                            // Day cells
-                            "[&_.fc-daygrid-day]:!bg-gray-900",
-                            "[&_.fc-daygrid-day-number]:!text-gray-200",
-                            "[&_.fc-day-today]:!bg-gray-800",
-                            "[&_.fc-day-past]:!bg-gray-900/50",
-                            "[&_.fc-day-future]:!bg-gray-900",
-
-                            // Events
-                            "[&_.fc-daygrid-event]:!rounded-md",
-                            "[&_.fc-daygrid-event]:!px-2",
-                            "[&_.fc-daygrid-event]:!py-1",
-                            "[&_.fc-daygrid-event]:!cursor-pointer",
-                            "[&_.fc-daygrid-event]:hover:!opacity-80",
-
-                            // Week numbers
-                            "[&_.fc-day-other]:!bg-gray-900/30",
-                            "[&_.fc-day-other_.fc-daygrid-day-number]:!text-gray-500",
-
-                            // Time grid specific
-                            "[&_.fc-timegrid-slot-label]:!text-gray-300",
-                            "[&_.fc-timegrid-axis]:!text-gray-300",
-                            "[&_.fc-timegrid-slot]:!bg-gray-900",
-                            "[&_.fc-timegrid-now-indicator-line]:!border-red-500",
-
-                            // List view
-                            "[&_.fc-list]:!bg-gray-900",
-                            "[&_.fc-list-day-cushion]:!bg-gray-800",
-                            "[&_.fc-list-event]:hover:!bg-gray-800",
-                            "[&_.fc-list-event-time]:!text-gray-300",
-                            "[&_.fc-list-event-title]:!text-gray-200"
-                        ]
-                    )}>
-                        <FullCalendar
-                            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                            initialView="dayGridMonth"
-                            headerToolbar={{
-                                left: 'prev,next today',
-                                center: 'title',
-                                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                            }}
-                            events={todos}
-                            eventClick={handleEventClick}
-                            height="auto"
-                            aspectRatio={2}
-                            editable={false}
-                            selectable={true}
-                            selectMirror={true}
-                            dayMaxEvents={true}
-                            eventTimeFormat={{
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                meridiem: 'short'
-                            }}
-                        />
-                    </div>
-                </motion.div>
+                                // Header cells
+                                "[&_.fc-col-header-cell]:!bg-gray-800",
+                                "[&_.fc-col-header-cell-cushion]:!text-gray-200",
+                            ]
+                        )}>
+                            <FullCalendar
+                                plugins={[dayGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                events={todos}
+                                eventClick={handleEventClick}
+                                headerToolbar={{
+                                    left: 'prev,next today',
+                                    center: 'title',
+                                    right: 'dayGridMonth,dayGridWeek'
+                                }}
+                                height="auto"
+                                views={{
+                                    dayGridMonth: {
+                                        titleFormat: {
+                                            month: 'short',
+                                            year: 'numeric'
+                                        }
+                                    }
+                                }}
+                                customButtons={{
+                                    today: {
+                                        text: 'Today',
+                                        click: () => calendarRef.current.getApi().today()
+                                    }
+                                }}
+                            />
+                        </div>
+                    </motion.div>
+                </div>
                 <EventDetailsModal
                     event={selectedEvent}
                     isOpen={isModalOpen}

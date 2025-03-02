@@ -13,11 +13,13 @@ import {
   ChevronRight,
   LogOut,
   Flame,
-  Timer
+  Timer,
+  Menu
 } from "lucide-react";
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Sidebar = ({ className, setIsAuthenticated }) => {
   const {
@@ -41,13 +43,12 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
     });
   };
 
-  return (
-    <div
-      className={cn(
-        "border-r border-border bg-card transition-all duration-200 ease-in-out",
-        isCollapsed ? "w-16" : "w-60"
-      )}
-    >
+  // Extract sidebar content into a separate component for reuse
+  const SidebarContent = ({ className }) => (
+    <div className={cn(
+      "h-full border-r border-border bg-card",
+      className
+    )}>
       <div className="space-y-4 py-4">
         {/* Logo and Collapse Section */}
         <div className="px-3 py-2">
@@ -200,6 +201,31 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
         </div>
       </div>
     </div>
+  );
+
+  // Render different layouts for mobile and desktop
+  return (
+    <>
+      {/* Mobile View */}
+      <Sheet>
+        <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
+          <Button variant="outline" size="icon">
+            <Menu className="h-4 w-4" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-[280px]">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop View */}
+      <div className={cn(
+        "hidden md:block transition-all duration-200 ease-in-out",
+        isCollapsed ? "w-16" : "w-60"
+      )}>
+        <SidebarContent />
+      </div>
+    </>
   );
 };
 
