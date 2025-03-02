@@ -138,11 +138,16 @@ const CalendarPage = ({ setIsAuthenticated }) => {
                             "[&_.fc-toolbar-chunk]:w-full md:[&_.fc-toolbar-chunk]:w-auto",
                             "[&_.fc-toolbar-chunk]:justify-center md:[&_.fc-toolbar-chunk]:justify-start",
 
-                            // Navigation buttons
+                            // Update Navigation buttons styles
                             "[&_.fc-prev-button]:!w-8 [&_.fc-next-button]:!w-8",
                             "[&_.fc-prev-button]:!h-8 [&_.fc-next-button]:!h-8",
                             "[&_.fc-prev-button]:!rounded-full [&_.fc-next-button]:!rounded-full",
-                            "[&_.fc-icon]:!text-sm",
+                            "[&_.fc-prev-button]:!flex [&_.fc-next-button]:!flex",
+                            "[&_.fc-prev-button]:!items-center [&_.fc-next-button]:!items-center",
+                            "[&_.fc-prev-button]:!justify-center [&_.fc-next-button]:!justify-center",
+                            "[&_.fc-icon]:!text-sm [&_.fc-icon]:!m-0 [&_.fc-icon]:!p-0",
+                            "[&_.fc-icon]:!flex [&_.fc-icon]:!items-center [&_.fc-icon]:!justify-center",
+                            "[&_.fc-icon]:!h-4 [&_.fc-icon]:!w-4",
 
                             // Event styles
                             "[&_.fc-event]:!p-1",

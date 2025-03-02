@@ -9,7 +9,7 @@ const EventDetailsModal = ({ event, isOpen, onClose, isDark }) => {
     const dueDate = dayjs(event.extendedProps.dueDate).format('MMM D, YYYY h:mm A');
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -18,7 +18,7 @@ const EventDetailsModal = ({ event, isOpen, onClose, isDark }) => {
 
             {/* Modal */}
             <div className={cn(
-                "relative w-full max-w-md p-6 rounded-lg shadow-lg",
+                "relative w-[90%] md:w-full md:max-w-md p-6 rounded-lg shadow-lg",
                 isDark ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"
             )}>
                 {/* Close button */}

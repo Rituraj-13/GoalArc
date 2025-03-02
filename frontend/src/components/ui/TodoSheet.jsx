@@ -578,7 +578,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent className={cn(
-          "sm:max-w-[425px]",
+          "w-[90%] md:w-full sm:max-w-[425px] rounded-xl",
           isDark ? "bg-card border-border" : "bg-white"
         )}>
           <AlertDialogHeader>
