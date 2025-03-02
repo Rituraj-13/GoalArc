@@ -190,7 +190,7 @@ const CalendarPage = ({ setIsAuthenticated }) => {
                         )}>
                             <FullCalendar
                                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridDay"
+                                initialView="dayGridMonth"
                                 events={todos}
                                 eventClick={handleEventClick}
                                 headerToolbar={{
