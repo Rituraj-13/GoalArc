@@ -12,6 +12,8 @@ import StreaksPage from './components/StreaksPage'
 import Settings from './components/Settings'
 import PomodoroPage from './components/PomodoroPage'
 import { PomodoroProvider } from './contexts/PomodoroContext'
+import CalendarPage from './components/CalendarPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,7 +37,6 @@ export default function App({ children }) {
         });
     }
   }, []);
-
 
   return (
     <ThemeProvider>
@@ -69,6 +70,15 @@ export default function App({ children }) {
             } />
 
             <Route path="/settings" element={<Settings setIsAuthenticated={setIsAuthenticated} />} />
+
+            <Route 
+              path="/calendar" 
+              element={
+                isAuthenticated ?
+                  <CalendarPage setIsAuthenticated={setIsAuthenticated} /> :
+                  <Navigate to="/auth" />
+              } 
+            />
           </Routes>
         </BrowserRouter>
       </PomodoroProvider>
