@@ -8,7 +8,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash, Check, X, WandSparkles, Calendar, Clock, BarChart, CheckCircle2, Timer } from 'lucide-react'
+import { Pencil, Trash, Check, X, WandSparkles, Calendar, Clock, BarChart, CheckCircle2, Timer, CircleCheckBig, Hourglass, CalendarClock, BookOpenCheck } from 'lucide-react'
 import MDEditor from "@uiw/react-md-editor"
 import dayjs from 'dayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -307,7 +307,25 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
             {/* Title Section */}
             {isEditing ? (
               <div className="space-y-6">
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex flex-col mb-8 mt-8 gap-4">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                      className="flex items-center gap-1 w-[100px]"
+                    >
+                      <X className="h-4 w-4" /> Cancel
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSave}
+                      className="flex items-center gap-1 w-[100px]"
+                    >
+                      <Check className="h-4 w-4" /> Save
+                    </Button>
+                  </div>
                   <input
                     type="text"
                     value={editTitle}
@@ -318,35 +336,27 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     )}
                     placeholder="✍️ Task title..."
                   />
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="flex items-center gap-1"
-                    >
-                      <X className="h-4 w-4" /> Cancel
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleSave}
-                      className="flex items-center gap-1"
-                    >
-                      <Check className="h-4 w-4" /> Save
-                    </Button>
-                  </div>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start justify-between mb-8">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between mb-8 mt-8">
+                <div className="flex flex-col gap-4 mt-16">
                   <h1 className={cn(
-                    "text-3xl font-bold",
+                    "text-3xl font-bold mb-1 flex items-center gap-2",
                     isDark ? "text-foreground" : "text-gray-900"
                   )}>
-                    {todo.completed ? '✅' : '📝'} {todo.title}
+                    {todo.completed ? <CircleCheckBig className="h-6 w-6 pt-0" /> : <BookOpenCheck className="h-6 w-6 pt-0" />}
+                    <span>{todo.title}</span>
                   </h1>
+                  <div className="flex items-center gap-2 pl-2">
+                    <span className="text-sm text-muted-foreground">Status:</span>
+                    <span className={cn(
+                      "inline-flex items-center justify-center rounded-full px-3 py-0.5 text-xs font-medium",
+                      getStatusStyles(todo)
+                    )}>
+                      {getStatusText(todo)}
+                    </span>
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
@@ -400,22 +410,6 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
               </div>
             )}
 
-            {/* Status */}
-            <Card className="shadow-sm bg-card">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-semibold">Status</CardTitle>
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent className="flex items-center gap-2">
-                <span className={cn(
-                  "inline-flex items-center justify-center rounded-full px-2 py-1 text-xs font-medium",
-                  getStatusStyles(todo)
-                )}>
-                  {getStatusText(todo)}
-                </span>
-              </CardContent>
-            </Card>
-
             {/* Due Date */}
             <Card className="shadow-sm bg-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -436,10 +430,11 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       <StaticDateTimePicker
                         value={editDate}
                         onChange={(newValue) => setEditDate(newValue)}
-                        orientation="landscape"
+                        orientation={isMobile ? "portrait" : "landscape"}
                         ampm={true}
                         className={cn(
                           "w-full",
+                          isMobile && "!max-w-full [&_.MuiPickersLayout-root]:!max-w-full",
                           isDark && [
                             "[&_.MuiTypography-root]:!text-gray-200",
                             "[&_.MuiPickersCalendarHeader-root]:!text-gray-200",
@@ -457,7 +452,6 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                             "[&_.MuiPickersArrowSwitcher-button]:!text-gray-200",
                             "[&_.MuiPickersArrowSwitcher-button>.MuiSvgIcon-root]:!text-gray-200",
                             "[&_.MuiClockNumber-root]:!text-gray-200",
-                            // "[&_.Mui-selected]:!bg-[#9F7AEA]",
                             "[&_.Mui-selected]:!text-white",
                             "[&_.Mui-selected]:!font-bold",
                             "[&_.Mui-selected]:!shadow-md",
@@ -481,11 +475,13 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                             sx: {
                               width: '100%',
                               '& .MuiDateCalendar-root': {
-                                maxHeight: '280px',
+                                maxHeight: isMobile ? '300px' : '280px',
+                                width: '100%',
                                 color: isDark ? 'rgb(229 231 235)' : 'inherit'
                               },
                               '& .MuiClock-root': {
-                                maxHeight: '220px',
+                                maxHeight: isMobile ? '250px' : '220px',
+                                width: '100%',
                                 backgroundColor: 'transparent',
                                 color: isDark ? 'rgb(229 231 235)' : 'inherit'
                               }
@@ -569,7 +565,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       "italic",
                       isDark ? "text-gray-400" : "text-gray-500"
                     )}>
-                    No description provided
+                      No description provided
                     </p>
                   )
                 )}

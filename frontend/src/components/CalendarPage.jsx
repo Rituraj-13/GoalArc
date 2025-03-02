@@ -114,14 +114,37 @@ const CalendarPage = ({ setIsAuthenticated }) => {
 
                         <div className={cn(
                             "bg-card rounded-xl shadow-lg p-3 md:p-6 border border-border",
-                            "[&_.fc-toolbar]:flex-col [&_.fc-toolbar]:gap-4 md:[&_.fc-toolbar]:flex-row",
-                            "[&_.fc-toolbar-title]:text-xl md:[&_.fc-toolbar-title]:text-2xl",
-                            "[&_.fc-toolbar-title]:text-foreground",
-                            "[&_.fc-button]:!bg-primary",
-                            "[&_.fc-button]:!border-primary",
-                            "[&_.fc-button]:!text-primary-foreground",
-                            "[&_.fc-button-active]:!bg-primary/80",
+                            // Mobile-first toolbar layout
+                            "[&_.fc-toolbar]:!flex [&_.fc-toolbar]:!flex-col [&_.fc-toolbar]:!gap-4",
+                            "md:[&_.fc-toolbar]:!flex-row md:[&_.fc-toolbar]:!gap-2",
+                            "[&_.fc-toolbar]:!justify-between [&_.fc-toolbar]:!items-center",
 
+                            // Title styles
+                            "[&_.fc-toolbar-title]:text-xl md:[&_.fc-toolbar-title]:text-2xl",
+                            "[&_.fc-toolbar-title]:text-foreground [&_.fc-toolbar-title]:w-full",
+                            "[&_.fc-toolbar-title]:text-center md:[&_.fc-toolbar-title]:text-left",
+
+                            // Button styles
+                            "[&_.fc-button]:!bg-primary/10 [&_.fc-button]:!text-primary",
+                            "[&_.fc-button]:hover:!bg-primary/20",
+                            "[&_.fc-button]:!border-0",
+                            "[&_.fc-button-active]:!bg-primary",
+                            "[&_.fc-button-active]:!text-primary-foreground",
+                            "[&_.fc-button]:!px-3 [&_.fc-button]:!py-1.5",
+                            "[&_.fc-button]:!text-sm",
+
+                            // Toolbar chunks layout
+                            "[&_.fc-toolbar-chunk]:flex [&_.fc-toolbar-chunk]:items-center [&_.fc-toolbar-chunk]:gap-2",
+                            "[&_.fc-toolbar-chunk]:w-full md:[&_.fc-toolbar-chunk]:w-auto",
+                            "[&_.fc-toolbar-chunk]:justify-center md:[&_.fc-toolbar-chunk]:justify-start",
+
+                            // Navigation buttons
+                            "[&_.fc-prev-button]:!w-8 [&_.fc-next-button]:!w-8",
+                            "[&_.fc-prev-button]:!h-8 [&_.fc-next-button]:!h-8",
+                            "[&_.fc-prev-button]:!rounded-full [&_.fc-next-button]:!rounded-full",
+                            "[&_.fc-icon]:!text-sm",
+
+                            // Event styles
                             "[&_.fc-event]:!p-1",
                             "[&_.fc-event-title]:!font-medium",
                             "[&_.fc-event-time]:!hidden",
@@ -130,42 +153,106 @@ const CalendarPage = ({ setIsAuthenticated }) => {
                             "[&_.fc-event]:!shadow-sm",
                             "[&_.fc-event]:hover:!opacity-90",
 
+                            // Calendar grid styles
                             "[&_.fc-day]:!bg-card",
                             "[&_.fc-day-other]:!bg-muted",
                             "[&_.fc-day-today]:!bg-accent",
                             "[&_.fc-col-header-cell]:!bg-muted",
                             "[&_.fc-col-header-cell-cushion]:!text-foreground",
-
                             "[&_.fc-view]:text-sm md:[&_.fc-view]:text-base",
                             "[&_.fc-day]:p-1 md:[&_.fc-day]:p-2",
+
+                            // Add these new time grid specific styles
+                            "[&_.fc-timegrid]:!border-separate",
+                            "[&_.fc-timegrid-slot-minor]:!border-0", // Remove the 30-minute divider line
+                            "[&_.fc-timegrid-slot]:!h-[60px]", // Make each time slot exactly 1 hour
+                            "[&_.fc-timegrid-slot-label]:!h-[60px]", // Match label height with slot
+                            "[&_.fc-timegrid-slots]:!border-r-0",
+                            "[&_.fc-timegrid-divider]:!hidden", // Hide any additional dividers
+                            "[&_.fc-timegrid-slot-label-cushion]:!font-medium",
+                            "[&_.fc-timegrid-slot-label]:!border-0",
+                            "[&_.fc-timegrid-axis]:!border-r-0",
+
+                            // Adjust event positioning and appearance
+                            "[&_.fc-timegrid-event]:!m-0",
+                            "[&_.fc-timegrid-event]:!border",
+                            "[&_.fc-timegrid-event-harness]:!m-0",
+
+                            // Improve time column appearance
+                            "[&_.fc-timegrid-axis-frame]:!py-2",
+                            "[&_.fc-timegrid-axis]:!w-16",
+                            "[&_.fc-timegrid-axis]:!border-r",
                         )}>
                             <FullCalendar
-                                plugins={[dayGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
+                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                initialView="timeGridDay"
                                 events={todos}
                                 eventClick={handleEventClick}
                                 headerToolbar={{
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,dayGridWeek'
+                                    left: 'title',
+                                    center: 'dayGridMonth,timeGridWeek,timeGridDay',
+                                    right: 'prev,next'
                                 }}
                                 height="auto"
-                                eventDisplay="block" // Makes events fill the cell
-                                displayEventTime={false} // Hides the event time
+                                eventDisplay="block"
+                                displayEventTime={true}
                                 views={{
                                     dayGridMonth: {
                                         titleFormat: {
-                                            month: 'short',
+                                            month: 'long',
                                             year: 'numeric'
+                                        }
+                                    },
+                                    timeGridWeek: {
+                                        titleFormat: {
+                                            month: 'long',
+                                            year: 'numeric'
+                                        },
+                                        dayHeaderFormat: {
+                                            weekday: 'short'
+                                        },
+                                        slotMinTime: '00:00:00',
+                                        slotMaxTime: '24:00:00',
+                                        expandRows: true,
+                                        allDaySlot: false,
+                                        slotDuration: '01:00:00',
+                                        slotLabelInterval: '01:00:00',
+                                        slotLabelFormat: {
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        }
+                                    },
+                                    timeGridDay: {
+                                        titleFormat: {
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        },
+                                        dayHeaderFormat: {
+                                            weekday: 'short'
+                                        },
+                                        slotMinTime: '00:00:00',
+                                        slotMaxTime: '24:00:00',
+                                        expandRows: true,
+                                        allDaySlot: false,
+                                        slotDuration: '01:00:00',
+                                        slotLabelInterval: '01:00:00',
+                                        slotLabelFormat: {
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
                                         }
                                     }
                                 }}
-                                customButtons={{
-                                    today: {
-                                        text: 'Today',
-                                        click: () => calendarRef.current.getApi().today()
-                                    }
+                                buttonText={{
+                                    // today: 'Today',
+                                    month: 'Month',
+                                    week: 'Week',
+                                    day: 'Day'
                                 }}
+                                slotEventOverlap={false}
+                                nowIndicator={true}
                             />
                         </div>
                     </motion.div>
