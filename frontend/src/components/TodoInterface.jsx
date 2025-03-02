@@ -41,7 +41,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [selectedFilter, setSelectedFilter] = useState("today");
+    const [selectedFilter, setSelectedFilter] = useState("all");
 
     // Get user's name from localStorage or set default
     const userName = localStorage.getItem('firstName') || 'User';
