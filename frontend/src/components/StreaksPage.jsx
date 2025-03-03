@@ -35,7 +35,7 @@ const StreaksPage = ({ setIsAuthenticated }) => {
       <Sidebar setIsAuthenticated={setIsAuthenticated} />
       <div className="flex-1 overflow-auto bg-background p-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8 text-foreground">Your Streaks 🔥</h1>
+          <h1 className="text-4xl font-bold mb-8 text-foreground mt-14 md:mt-0">Your Streaks 🔥</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Current Streak Card */}

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 import EventDetailsModal from './EventDetailsModal';
+import { CalendarCheck } from 'lucide-react';
 
 const CalendarPage = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
@@ -108,9 +109,12 @@ const CalendarPage = ({ setIsAuthenticated }) => {
                         transition={{ duration: 0.5 }}
                         className="max-w-7xl mx-auto"
                     >
-                        <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">
-                            Calendar View 📅
-                        </h1>
+                        {/* <div className='flex gap-5'>
+                            <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">
+                                Calendar View
+                            </h1>
+                            <CalendarCheck className='h-7 w-7 mt-0'/>
+                        </div> */}
 
                         <div className={cn(
                             "bg-card rounded-xl shadow-lg p-3 md:p-6 border border-border",

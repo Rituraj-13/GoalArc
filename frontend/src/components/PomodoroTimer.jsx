@@ -44,9 +44,15 @@ const PomodoroTimer = () => {
     const totalSeconds = currentSession === 'work'
       ? settings.workDuration * 60
       : currentSession === 'longBreak'
-        ? settings.longBreakDuration * 60
+        ? (settings.longBreakDuration || settings.shortBreakDuration) * 60
         : settings.shortBreakDuration * 60;
-    return ((totalSeconds - timeLeft) / totalSeconds) * 100;
+
+    // Always ensure totalSeconds is at least 1
+    const safeTotalSeconds = Math.max(1, totalSeconds);
+
+    // Calculate progress ensuring it's between 0 and 100
+    const progress = ((safeTotalSeconds - timeLeft) / safeTotalSeconds) * 100;
+    return Math.min(Math.max(0, progress), 100);
   };
 
   useEffect(() => {
@@ -90,7 +96,7 @@ const PomodoroTimer = () => {
             )}
             strokeWidth="8"
             strokeDasharray={2 * Math.PI * 120}
-            strokeDashoffset={2 * Math.PI * 120 * (1 - calculateProgress() / 100)}
+            strokeDashoffset={2 * Math.PI * 120 * (1 - (calculateProgress() || 0) / 100)}
             strokeLinecap="round"
             stroke="currentColor"
             fill="transparent"
