@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import OTPVerification from './OTPVerification';
-import { UserCircle, Mail, User, Pencil, Calendar } from 'lucide-react';
+import { UserCircle, Mail, User, Pencil, Calendar, SettingsIcon } from 'lucide-react';
 
 const Settings = ({ setIsAuthenticated }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -135,7 +135,10 @@ const Settings = ({ setIsAuthenticated }) => {
             />
             <div className="flex-1 p-4 md:p-8 bg-background overflow-y-auto">
                 <div className="max-w-2xl mx-auto">
-                    <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-foreground mt-14 md:mt-0">Profile Settings</h1>
+                    <div className="flex items-center gap-3 mb-6 md:mb-8">
+                        <SettingsIcon size={32} className="text-foreground" />
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-14 md:mt-0">Settings</h1>
+                    </div>
 
                     {/* Show either Profile Card or Edit Form based on isEditing state */}
                     {!isEditing ? (

@@ -14,6 +14,7 @@ import PomodoroPage from './components/PomodoroPage'
 import { PomodoroProvider } from './contexts/PomodoroContext'
 import CalendarPage from './components/CalendarPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import { Toaster } from 'react-hot-toast'
 
 export default function App({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,6 +43,7 @@ export default function App({ children }) {
     <ThemeProvider>
       <PomodoroProvider>
         <BrowserRouter>
+          <Toaster position="bottom-right" />
           <Routes>
             <Route path="/" element={<LandingPage />} />
 
@@ -71,13 +73,13 @@ export default function App({ children }) {
 
             <Route path="/settings" element={<Settings setIsAuthenticated={setIsAuthenticated} />} />
 
-            <Route 
-              path="/calendar" 
+            <Route
+              path="/calendar"
               element={
                 isAuthenticated ?
                   <CalendarPage setIsAuthenticated={setIsAuthenticated} /> :
                   <Navigate to="/auth" />
-              } 
+              }
             />
           </Routes>
         </BrowserRouter>
