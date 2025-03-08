@@ -1,5 +1,5 @@
 import express from "express"
-import s3Client from '../config/s3Config.js';
+import s3Client, { generatePresignedUrl } from '../config/s3Config.js';
 import upload from '../middlewares/uploadMiddleware.js';
 import AuthMiddleware from "../Middlewares/AuthMiddleware.js";
 import UserObject from "../auth.js"
@@ -20,22 +20,27 @@ router.post('/upload', AuthMiddleware, upload.single('profilePicture'), async (r
 
         // If user has an existing profile picture, delete it from S3
         if (user.profilePicture) {
-            const key = user.profilePicture.split('/').pop();
+            const oldKey = user.profilePicture.split('/').pop();
             await s3Client.send(new DeleteObjectCommand({
                 Bucket: process.env.AWS_BUCKET_NAME,
-                Key: `profile-pictures/${key}`
+                Key: `profile-pictures/${oldKey}`
             }));
         }
 
-        // Update user profile with new picture URL
-        user.profilePicture = req.file.location;
+        // Store the S3 key in the database
+        const key = req.file.key;
+        user.profilePicture = key;
         await user.save();
+
+        // Generate presigned URL for immediate use
+        const presignedUrl = await generatePresignedUrl(key);
+
 
         res.json({
             message: "Profile Picture uploaded Successfully",
-            profilePicture: req.file.location
+            profilePicture: presignedUrl
         })
-        
+
     } catch (error) {
         console.error("Upload Error", error);
         res.status(500).json({

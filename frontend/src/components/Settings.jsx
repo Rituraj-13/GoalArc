@@ -1,294 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import { toast } from 'react-hot-toast';
-// import Sidebar from './Sidebar';
-// import { Button } from './ui/button';
-// import { cn } from '../lib/utils';
-// import OTPVerification from './OTPVerification';
-// import { UserCircle, Mail, User, Pencil, Calendar, SettingsIcon } from 'lucide-react';
-
-// const Settings = ({ setIsAuthenticated }) => {
-//     const [isCollapsed, setIsCollapsed] = useState(false);
-//     const [firstName, setFirstName] = useState('');
-//     const [lastName, setLastName] = useState('');ī
-//     const [email, setEmail] = useState('');
-//     const [newEmail, setNewEmail] = useState('');
-//     const [isEmailVerification, setIsEmailVerification] = useState(false);
-//     const [isLoading, setIsLoading] = useState(false);
-//     const [isEditing, setIsEditing] = useState(false);
-//     const [joinDate, setJoinDate] = useState('');
-
-//     // Fetch current user data
-//     useEffect(() => {
-//         const fetchUserData = async () => {
-//             try {
-//                 const token = localStorage.getItem('todoToken');
-//                 const response = await axios.get('http://localhost:3000/user/profile', {
-//                     headers: {
-//                         'Authorization': `Bearer ${token}`
-//                     }
-//                 });
-//                 const { firstName, lastName, username, joinDate } = response.data;
-//                 setFirstName(firstName);
-//                 setLastName(lastName);
-//                 setEmail(username);
-//                 setJoinDate(joinDate);
-//             } catch (error) {
-//                 toast.error('Failed to load user data');
-//             }
-//         };
-//         fetchUserData();
-//     }, []);
-
-//     const handleUpdateProfile = async (e) => {
-//         e.preventDefault();
-//         setIsLoading(true);
-
-//         try {
-//             const token = localStorage.getItem('todoToken');
-//             const updateData = {
-//                 firstName,
-//                 lastName
-//             };
-
-//             // If email is being changed, send OTP first
-//             if (newEmail && newEmail !== email) {
-//                 try {
-//                     await axios.post('http://localhost:3000/resend-otp', {
-//                         email: newEmail
-//                     });
-
-//                     setIsEmailVerification(true);
-//                     toast.success('Verification code sent to your new email');
-//                     return;
-//                 } catch (error) {
-//                     toast.error('Failed to send verification code');
-//                     setIsLoading(false);
-//                     return;
-//                 }
-//             }
-
-//             // If no email change, just update other fields
-//             const response = await axios.put(
-//                 'http://localhost:3000/user/profile',
-//                 updateData,
-//                 {
-//                     headers: {
-//                         'Authorization': `Bearer ${token}`
-//                     }
-//                 }
-//             );
-
-//             localStorage.setItem('firstName', firstName);
-//             toast.success('Profile updated successfully');
-//             setIsEditing(false);
-//         } catch (error) {
-//             toast.error('Failed to update profile');
-//         } finally {
-//             setIsLoading(false);
-//         }
-//     };
-
-//     const handleEmailVerificationComplete = async () => {
-//         try {
-//             const token = localStorage.getItem('todoToken');
-//             await axios.put(
-//                 'http://localhost:3000/user/profile',
-//                 {
-//                     firstName,
-//                     lastName,
-//                     username: newEmail
-//                 },
-//                 {
-//                     headers: {
-//                         'Authorization': `Bearer ${token}`
-//                     }
-//                 }
-//             );
-
-//             setEmail(newEmail);
-//             setNewEmail('');
-//             setIsEmailVerification(false);
-//             setIsEditing(false);
-//             toast.success('Profile updated successfully');
-//         } catch (error) {
-//             toast.error('Failed to update profile');
-//         }
-//     };
-
-//     if (isEmailVerification) {
-//         return (
-//             <OTPVerification
-//                 email={newEmail}
-//                 onVerificationComplete={handleEmailVerificationComplete}
-//                 isProfileUpdate={true}
-//             />
-//         );
-//     }
-
-//     return (
-//         <div className="flex h-screen flex-col md:flex-row">
-//             <Sidebar
-//                 setIsAuthenticated={setIsAuthenticated}
-//                 isCollapsed={isCollapsed}
-//                 setIsCollapsed={setIsCollapsed}
-//             />
-//             <div className="flex-1 p-4 md:p-8 bg-background overflow-y-auto">
-//                 <div className="max-w-2xl mx-auto">
-//                     <div className="flex items-center gap-3 mb-6 md:mb-8">
-//                         <SettingsIcon size={32} className="text-foreground" />
-//                         <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-14 md:mt-0">Settings</h1>
-//                     </div>
-
-//                     {/* Show either Profile Card or Edit Form based on isEditing state */}
-//                     {!isEditing ? (
-//                         // Profile Card
-//                         <div className="bg-card rounded-lg shadow-md p-4 md:p-6">
-//                             <div className="flex flex-col items-center mb-6">
-//                                 <div className="bg-primary/10 p-4 rounded-full mb-4">
-//                                     <UserCircle className="w-16 h-16 text-primary" />
-//                                 </div>
-//                                 <div className="text-center">
-//                                     <h2 className="text-xl font-semibold text-foreground mb-2">
-//                                         {firstName} {lastName}
-//                                     </h2>
-//                                     <p className="text-muted-foreground break-all">{email}</p>
-//                                 </div>
-//                             </div>
-
-//                             <div className="space-y-4 mb-6">
-//                                 <div className="flex items-center gap-2">
-//                                     <div className="flex items-center gap-2 text-muted-foreground min-w-[140px]">
-//                                         <User className="w-5 h-5" />
-//                                         <span>Full Name:</span>
-//                                     </div>
-//                                     <span className="text-foreground">{firstName} {lastName}</span>
-//                                 </div>
-
-//                                 <div className="flex items-center gap-2">
-//                                     <div className="flex items-center gap-2 text-muted-foreground min-w-[140px]">
-//                                         <Mail className="w-5 h-5" />
-//                                         <span>Email:</span>
-//                                     </div>
-//                                     <span className="text-foreground break-all">{email}</span>
-//                                 </div>
-
-//                                 <div className="flex items-center gap-2">
-//                                     <div className="flex items-center gap-2 text-muted-foreground min-w-[140px]">
-//                                         <Calendar className="w-5 h-5" />
-//                                         <span>Member since:</span>
-//                                     </div>
-//                                     <span className="text-foreground">
-//                                         {new Date(joinDate).toLocaleDateString('en-US', {
-//                                             year: 'numeric',
-//                                             month: 'long',
-//                                             day: 'numeric'
-//                                         })}
-//                                     </span>
-//                                 </div>
-//                             </div>
-
-//                             <Button
-//                                 variant="outline"
-//                                 onClick={() => setIsEditing(true)}
-//                                 className="w-full flex items-center justify-center gap-2"
-//                             >
-//                                 <Pencil className="w-4 h-4" />
-//                                 Edit Profile
-//                             </Button>
-//                         </div>
-//                     ) : (
-//                         // Edit Form
-//                         <div className="bg-card rounded-lg shadow-md p-4 md:p-6">
-//                             <h3 className="text-xl font-semibold mb-6 text-foreground">Edit Profile</h3>
-//                             <form onSubmit={handleUpdateProfile} className="space-y-6">
-//                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                                     <div>
-//                                         <label className="block text-sm font-medium mb-2 text-foreground">
-//                                             First Name
-//                                         </label>
-//                                         <input
-//                                             type="text"
-//                                             value={firstName}
-//                                             onChange={(e) => setFirstName(e.target.value)}
-//                                             className="w-full p-2 rounded-md border bg-background text-foreground"
-//                                             required
-//                                         />
-//                                     </div>
-
-//                                     <div>
-//                                         <label className="block text-sm font-medium mb-2 text-foreground">
-//                                             Last Name
-//                                         </label>
-//                                         <input
-//                                             type="text"
-//                                             value={lastName}
-//                                             onChange={(e) => setLastName(e.target.value)}
-//                                             className="w-full p-2 rounded-md border bg-background text-foreground"
-//                                             required
-//                                         />
-//                                     </div>
-//                                 </div>
-
-//                                 <div>
-//                                     <label className="block text-sm font-medium mb-2 text-foreground">
-//                                         Current Email
-//                                     </label>
-//                                     <input
-//                                         type="email"
-//                                         value={email}
-//                                         className="w-full p-2 rounded-md border bg-muted text-muted-foreground break-all"
-//                                         disabled
-//                                     />
-//                                 </div>
-
-//                                 <div>
-//                                     <label className="block text-sm font-medium mb-2 text-foreground">
-//                                         New Email (Optional)
-//                                     </label>
-//                                     <input
-//                                         type="email"
-//                                         value={newEmail}
-//                                         onChange={(e) => setNewEmail(e.target.value)}
-//                                         className="w-full p-2 rounded-md border bg-background text-foreground"
-//                                         placeholder="Enter new email"
-//                                     />
-//                                 </div>
-
-//                                 <div className="flex flex-col md:flex-row gap-4">
-//                                     <Button
-//                                         type="submit"
-//                                         disabled={isLoading}
-//                                         className={cn(
-//                                             "flex-1",
-//                                             isLoading && "opacity-50 cursor-not-allowed"
-//                                         )}
-//                                     >
-//                                         {isLoading ? "Updating..." : "Update Profile"}
-//                                     </Button>
-//                                     <Button
-//                                         type="button"
-//                                         variant="outline"
-//                                         onClick={() => {
-//                                             setIsEditing(false);
-//                                             setNewEmail('');
-//                                         }}
-//                                         className="flex-1"
-//                                     >
-//                                         Cancel
-//                                     </Button>
-//                                 </div>
-//                             </form>
-//                         </div>
-//                     )}
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default Settings;
-
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "react-hot-toast"
@@ -310,28 +19,54 @@ const Settings = ({ setIsAuthenticated }) => {
     const [joinDate, setJoinDate] = useState("")
     const [editSection, setEditSection] = useState(null)
     const [profilePicture, setProfilePicture] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [tempProfilePicture, setTempProfilePicture] = useState(null);
+
+    const fetchUserData = async () => {
+        try {
+            const token = localStorage.getItem("todoToken")
+            const response = await axios.get("http://localhost:3000/user/profile", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const { firstName, lastName, username, joinDate, profilePicture } = response.data;
+            setFirstName(firstName);
+            setLastName(lastName);
+            setEmail(username);
+            setJoinDate(joinDate);
+            setProfilePicture(profilePicture);
+        } catch (error) {
+            toast.error("Failed to load user data")
+        }
+    };
+
     // Fetch current user data
     useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const token = localStorage.getItem("todoToken")
-                const response = await axios.get("http://localhost:3000/user/profile", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const { firstName, lastName, username, joinDate, profilePicture } = response.data;
-                setFirstName(firstName);
-                setLastName(lastName);
-                setEmail(username);
-                setJoinDate(joinDate);
-                setProfilePicture(profilePicture);
-            } catch (error) {
-                toast.error("Failed to load user data")
-            }
+        fetchUserData();
+    }, []);
+
+    const handlePhotoSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please upload an image file');
+            return;
         }
-        fetchUserData()
-    }, [])
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size should be less than 5MB');
+            return;
+        }
+
+        // Create a temporary URL for preview
+        const tempUrl = URL.createObjectURL(file);
+        setTempProfilePicture(tempUrl);
+        setSelectedFile(file);
+    }
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault()
@@ -339,6 +74,32 @@ const Settings = ({ setIsAuthenticated }) => {
 
         try {
             const token = localStorage.getItem("todoToken")
+
+            // Handle profile picture upload first if a new file is selected
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('profilePicture', selectedFile);
+
+                try {
+                    const uploadResponse = await axios.post(
+                        'http://localhost:3000/user/upload',
+                        formData,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }
+                    );
+                    setProfilePicture(uploadResponse.data.profilePicture);
+                } catch (error) {
+                    toast.error('Failed to upload profile picture');
+                    console.error('Upload error:', error);
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
             const updateData = {
                 firstName,
                 lastName,
@@ -371,6 +132,11 @@ const Settings = ({ setIsAuthenticated }) => {
             localStorage.setItem("firstName", firstName)
             toast.success("Profile updated successfully")
             setEditSection(null)
+            setSelectedFile(null);
+            setTempProfilePicture(null);
+
+            // Refresh user data to ensure we have the latest data
+            fetchUserData();
         } catch (error) {
             toast.error("Failed to update profile")
         } finally {
@@ -405,11 +171,6 @@ const Settings = ({ setIsAuthenticated }) => {
         }
     }
 
-    const handlePhotoUpload = (e) => {
-        // This is a placeholder for photo upload functionality
-        toast.success("Photo upload feature will be implemented soon")
-    }
-
     if (isEmailVerification) {
         return (
             <OTPVerification
@@ -434,23 +195,34 @@ const Settings = ({ setIsAuthenticated }) => {
                     <div className="bg-card rounded-lg shadow-md p-6 mb-6">
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                             <div className="w-24 h-24 rounded-full bg-primary/10 overflow-hidden flex-shrink-0">
-                                {/* <UserCircle className="w-full h-full text-primary" /> */}
                                 <ProfilePicture
-                                    profilePicture={profilePicture}
-                                    onUploadSuccess={(url) => setProfilePicture(url)}
+                                    profilePicture={editSection === "personal" ? (tempProfilePicture || profilePicture) : profilePicture}
+                                    onUploadSuccess={(url) => {
+                                        setProfilePicture(url);
+                                        fetchUserData();
+                                    }}
                                 />
                             </div>
                             <div className="flex flex-col items-center md:items-start gap-3 w-full">
                                 {editSection === "personal" ? (
                                     <>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handlePhotoUpload}
-                                            className="text-foreground hover:text-foreground hover:bg-accent"
-                                        >
-                                            Upload new photo
-                                        </Button>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="profile-photo-input"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handlePhotoSelect}
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-foreground hover:text-foreground hover:bg-accent"
+                                                onClick={() => document.getElementById('profile-photo-input').click()}
+                                            >
+                                                Select new photo
+                                            </Button>
+                                        </div>
                                         <div className="text-sm text-muted-foreground text-center md:text-left">
                                             <p>At least 800×800 px recommended.</p>
                                             <p>JPG or PNG is allowed</p>

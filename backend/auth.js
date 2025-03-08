@@ -11,6 +11,7 @@ import cron from 'node-cron';
 import AuthMiddleware from './Middlewares/AuthMiddleware.js';
 import pomodoroRouter from './routes/pomodoro.js';
 import profilePictureRoutes from './routes/profilePictureRoutes.js';
+import { generatePresignedUrl } from './config/s3Config.js';
 
 dotenv.config();
 
@@ -278,12 +279,19 @@ app.get('/user/profile', AuthMiddleware, async (req, res) => {
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
+
+        // Generate presigned URL if user has a profile picture
+        let profilePictureUrl = null;
+        if (user.profilePicture) {
+            profilePictureUrl = await generatePresignedUrl(user.profilePicture);
+        }
+
         res.json({
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
             joinDate: user.joinDate,
-            profilePicture: user.profilePicture
+            profilePicture: profilePictureUrl
         });
     } catch (error) {
         res.status(500).json({ msg: 'Server error' });

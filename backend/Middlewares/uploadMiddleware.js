@@ -2,14 +2,13 @@
 // This missleware also validates the filetype and filesize before uploading
 import multer from "multer";
 import multerS3 from "multer-s3";
-
-import s3Client from "../config/s3Config";
+import s3Client from "../config/s3Config.js";
 
 const upload = multer({
     storage: multerS3({
         s3: s3Client,
         bucket: process.env.AWS_BUCKET_NAME,
-        acl: 'public-read',
+        // acl: 'public-read',
         metadata: (req, file, cb) => {
             cb(null, { fieldName: file.fieldname })
         },
