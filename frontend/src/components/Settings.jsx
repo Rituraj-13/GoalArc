@@ -296,7 +296,8 @@ import Sidebar from "./Sidebar"
 import { Button } from "./ui/button"
 import { cn } from "../lib/utils"
 import OTPVerification from "./OTPVerification"
-import { UserCircle, SettingsIcon, Edit } from "lucide-react"
+import { UserCircle, SettingsIcon, Edit, User2Icon, MailIcon, Calendar } from "lucide-react";
+import ProfilePicture from './ProfilePicture';
 
 const Settings = ({ setIsAuthenticated }) => {
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -308,7 +309,7 @@ const Settings = ({ setIsAuthenticated }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [joinDate, setJoinDate] = useState("")
     const [editSection, setEditSection] = useState(null)
-
+    const [profilePicture, setProfilePicture] = useState(null);
     // Fetch current user data
     useEffect(() => {
         const fetchUserData = async () => {
@@ -318,12 +319,13 @@ const Settings = ({ setIsAuthenticated }) => {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-                })
-                const { firstName, lastName, username, joinDate } = response.data
-                setFirstName(firstName)
-                setLastName(lastName)
-                setEmail(username)
-                setJoinDate(joinDate)
+                });
+                const { firstName, lastName, username, joinDate, profilePicture } = response.data;
+                setFirstName(firstName);
+                setLastName(lastName);
+                setEmail(username);
+                setJoinDate(joinDate);
+                setProfilePicture(profilePicture);
             } catch (error) {
                 toast.error("Failed to load user data")
             }
@@ -432,7 +434,11 @@ const Settings = ({ setIsAuthenticated }) => {
                     <div className="bg-card rounded-lg shadow-md p-6 mb-6">
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                             <div className="w-24 h-24 rounded-full bg-primary/10 overflow-hidden flex-shrink-0">
-                                <UserCircle className="w-full h-full text-primary" />
+                                {/* <UserCircle className="w-full h-full text-primary" /> */}
+                                <ProfilePicture
+                                    profilePicture={profilePicture}
+                                    onUploadSuccess={(url) => setProfilePicture(url)}
+                                />
                             </div>
                             <div className="flex flex-col items-center md:items-start gap-3 w-full">
                                 {editSection === "personal" ? (
@@ -459,7 +465,7 @@ const Settings = ({ setIsAuthenticated }) => {
                                     </div>
                                 )}
                             </div>
-                        </div>ī
+                        </div>
                     </div>
 
                     {/* Personal Info Card */}
@@ -512,7 +518,7 @@ const Settings = ({ setIsAuthenticated }) => {
                                         disabled
                                     />
 
-                                    <label className="block text-sm font-medium mb-2 text-foreground">New Email (Optional)</label>
+                                    <label className="block text-sm font-medium mb-2 text-foreground">New Email</label>
                                     <input
                                         type="email"
                                         value={newEmail}
@@ -548,7 +554,10 @@ const Settings = ({ setIsAuthenticated }) => {
                                 <div className="border-b border-border pb-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                                         <div className="sm:col-span-1">
-                                            <p className="text-sm text-muted-foreground">Full Name</p>
+                                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                <User2Icon className="w-4 h-4" />
+                                                Full Name
+                                            </p>
                                         </div>
                                         <div className="sm:col-span-2">
                                             <p className="text-sm font-medium text-foreground">
@@ -561,7 +570,10 @@ const Settings = ({ setIsAuthenticated }) => {
                                 <div className="border-b border-border pb-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                                         <div className="sm:col-span-1">
-                                            <p className="text-sm text-muted-foreground">Email</p>
+                                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                <MailIcon className="w-4 h-4" />
+                                                Email
+                                            </p>
                                         </div>
                                         <div className="sm:col-span-2">
                                             <p className="text-sm font-medium text-foreground break-all">{email}</p>
@@ -572,7 +584,10 @@ const Settings = ({ setIsAuthenticated }) => {
                                 <div>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                                         <div className="sm:col-span-1">
-                                            <p className="text-sm text-muted-foreground">Member since</p>
+                                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                <Calendar className="w-4 h-4" />
+                                                Member since
+                                            </p>
                                         </div>
                                         <div className="sm:col-span-2">
                                             <p className="text-sm font-medium text-foreground">

@@ -1,0 +1,424 @@
+AWS S3 Profile Picture Upload Implementation Guide
+==============================================
+
+This guide provides step-by-step instructions for implementing profile picture uploads using AWS S3 in your Todo App.
+
+Prerequisites
+------------
+1. AWS Account
+2. AWS S3 Bucket created
+3. AWS IAM User with S3 access
+4. AWS SDK installed
+
+Backend Implementation
+--------------------
+
+1. Install Required Dependencies
+   ```bash
+   cd backend
+   npm install @aws-sdk/client-s3 multer multer-s3
+   ```
+
+2. Create AWS S3 Configuration (backend/config/s3Config.js)
+   ```javascript
+   import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+   import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+   const s3Client = new S3Client({
+     credentials: {
+       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+     },
+     region: process.env.AWS_REGION
+   });
+
+   // Function to generate presigned URL
+   export const generatePresignedUrl = async (key) => {
+     const command = new GetObjectCommand({
+       Bucket: process.env.AWS_BUCKET_NAME,
+       Key: key
+     });
+     
+     // URL expires in 1 hour
+     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+   };
+
+   export default s3Client;
+   ```
+
+3. Update Environment Variables (backend/.env)
+   Add these variables to your existing .env file:
+   ```
+   AWS_ACCESS_KEY_ID=your_access_key_id
+   AWS_SECRET_ACCESS_KEY=your_secret_access_key
+   AWS_REGION=your_region
+   AWS_BUCKET_NAME=your_bucket_name
+   ```
+
+4. Create Upload Middleware (backend/middlewares/uploadMiddleware.js)
+   ```javascript
+   import multer from 'multer';
+   import multerS3 from 'multer-s3';
+   import s3Client from '../config/s3Config.js';
+
+   const upload = multer({
+     storage: multerS3({
+       s3: s3Client,
+       bucket: process.env.AWS_BUCKET_NAME,
+       metadata: (req, file, cb) => {
+         cb(null, { fieldName: file.fieldname });
+       },
+       key: (req, file, cb) => {
+         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+         cb(null, 'profile-pictures/' + uniqueSuffix + '-' + file.originalname);
+       }
+     }),
+     limits: {
+       fileSize: 5 * 1024 * 1024 // 5MB limit
+     },
+     fileFilter: (req, file, cb) => {
+       if (file.mimetype.startsWith('image/')) {
+         cb(null, true);
+       } else {
+         cb(new Error('Not an image! Please upload an image.'), false);
+       }
+     }
+   });
+
+   export default upload;
+   ```
+
+5. Create Profile Picture Router (backend/routes/profilePictureRoutes.js)
+   ```javascript
+   import express from 'express';
+   import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+   import s3Client, { generatePresignedUrl } from '../config/s3Config.js';
+   import upload from '../middlewares/uploadMiddleware.js';
+   import AuthMiddleware from '../middlewares/AuthMiddleware.js';
+
+   const router = express.Router();
+
+   // Upload profile picture route
+   router.post('/upload', AuthMiddleware, upload.single('profilePicture'), async (req, res) => {
+     try {
+       if (!req.file) {
+         return res.status(400).json({ message: 'No file uploaded' });
+       }
+
+       const user = await UserObject.findById(req.userId);
+       
+       // If user has an existing profile picture, delete it from S3
+       if (user.profilePicture) {
+         const oldKey = user.profilePicture.split('/').pop();
+         await s3Client.send(new DeleteObjectCommand({
+           Bucket: process.env.AWS_BUCKET_NAME,
+           Key: `profile-pictures/${oldKey}`
+         }));
+       }
+
+       // Store the S3 key in the database
+       const key = req.file.key;
+       user.profilePicture = key;
+       await user.save();
+
+       // Generate presigned URL for immediate use
+       const presignedUrl = await generatePresignedUrl(key);
+
+       res.json({
+         message: 'Profile picture uploaded successfully',
+         profilePicture: presignedUrl
+       });
+     } catch (error) {
+       console.error('Upload error:', error);
+       res.status(500).json({ message: 'Error uploading profile picture' });
+     }
+   });
+
+   export default router;
+   ```
+
+6. Update the existing profile route in auth.js
+   ```javascript
+   import { generatePresignedUrl } from './config/s3Config.js';
+
+   app.get('/user/profile', AuthMiddleware, async (req, res) => {
+     try {
+       const user = await UserObject.findById(req.userId);
+       if (!user) {
+         return res.status(404).json({ msg: 'User not found' });
+       }
+
+       // Generate presigned URL if user has a profile picture
+       let profilePictureUrl = null;
+       if (user.profilePicture) {
+         profilePictureUrl = await generatePresignedUrl(user.profilePicture);
+       }
+
+       res.json({
+         firstName: user.firstName,
+         lastName: user.lastName,
+         username: user.username,
+         joinDate: user.joinDate,
+         profilePicture: profilePictureUrl
+       });
+     } catch (error) {
+       res.status(500).json({ msg: 'Server error' });
+     }
+   });
+   ```
+
+7. Update auth.js to use the profile picture router
+   Add this import at the top of auth.js:
+   ```javascript
+   import profilePictureRoutes from './routes/profilePictureRoutes.js';
+   ```
+
+   Add this line after your other app.use() statements:
+   ```javascript
+   app.use('/user', profilePictureRoutes);
+   ```
+
+Frontend Implementation
+---------------------
+
+1. Install Required Dependencies
+   ```bash
+   cd frontend
+   npm install axios
+   ```
+
+2. Create Profile Picture Component (frontend/src/components/ProfilePicture.jsx)
+   ```javascript
+   import { useState } from 'react';
+   import { UserCircle, Edit } from 'lucide-react';
+   import { toast } from 'react-hot-toast';
+   import axios from 'axios';
+
+   const ProfilePicture = ({ profilePicture, onUploadSuccess }) => {
+     const [isUploading, setIsUploading] = useState(false);
+
+     const handleFileChange = async (e) => {
+       const file = e.target.files[0];
+       if (!file) return;
+
+       // Validate file type
+       if (!file.type.startsWith('image/')) {
+         toast.error('Please upload an image file');
+         return;
+       }
+
+       // Validate file size (5MB)
+       if (file.size > 5 * 1024 * 1024) {
+         toast.error('File size should be less than 5MB');
+         return;
+       }
+
+       const formData = new FormData();
+       formData.append('profilePicture', file);
+
+       setIsUploading(true);
+       try {
+         const token = localStorage.getItem('todoToken');
+         const response = await axios.post(
+           'http://localhost:3000/user/upload',  // Updated URL to match new route
+           formData,
+           {
+             headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'multipart/form-data'
+             }
+           }
+         );
+
+         onUploadSuccess(response.data.profilePicture);
+         toast.success('Profile picture updated successfully');
+       } catch (error) {
+         toast.error('Failed to upload profile picture');
+         console.error('Upload error:', error);
+       } finally {
+         setIsUploading(false);
+       }
+     };
+
+     return (
+       <div className="relative w-24 h-24">
+         {profilePicture ? (
+           <img
+             src={profilePicture}
+             alt="Profile"
+             className="w-full h-full rounded-full object-cover"
+           />
+         ) : (
+           <UserCircle className="w-full h-full text-primary" />
+         )}
+         
+         <label
+           className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white rounded-full p-1 cursor-pointer"
+           htmlFor="profile-picture-input"
+         >
+           <input
+             type="file"
+             id="profile-picture-input"
+             className="hidden"
+             accept="image/*"
+             onChange={handleFileChange}
+             disabled={isUploading}
+           />
+           {isUploading ? (
+             <span className="loading loading-spinner loading-sm"></span>
+           ) : (
+             <Edit className="w-4 h-4" />
+           )}
+         </label>
+       </div>
+     );
+   };
+
+   export default ProfilePicture;
+   ```
+
+3. Update Settings Component (frontend/src/components/Settings.jsx)
+   ```javascript
+   import { useState, useEffect } from 'react';
+   import axios from 'axios';
+   import { toast } from 'react-hot-toast';
+   import ProfilePicture from './ProfilePicture';
+   // ... other imports ...
+
+   const Settings = ({ setIsAuthenticated }) => {
+     // ... other state declarations ...
+     const [profilePicture, setProfilePicture] = useState(null);
+
+     useEffect(() => {
+       const fetchUserData = async () => {
+         try {
+           const token = localStorage.getItem('todoToken');
+           const response = await axios.get('http://localhost:3000/user/profile', {
+             headers: {
+               'Authorization': `Bearer ${token}`
+             }
+           });
+           const { firstName, lastName, username, joinDate, profilePicture } = response.data;
+           setFirstName(firstName);
+           setLastName(lastName);
+           setEmail(username);
+           setJoinDate(joinDate);
+           setProfilePicture(profilePicture);
+         } catch (error) {
+           toast.error('Failed to load user data');
+         }
+       };
+       fetchUserData();
+     }, []);
+
+     // ... Replace the UserCircle component with ProfilePicture ...
+     <ProfilePicture
+       profilePicture={profilePicture}
+       onUploadSuccess={(url) => setProfilePicture(url)}
+     />
+   };
+
+   export default Settings;
+   ```
+
+Testing
+-------
+1. Create an AWS S3 bucket with appropriate CORS configuration:
+   ```json
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET", "POST", "PUT", "DELETE"],
+       "AllowedOrigins": ["http://localhost:3000"],
+       "ExposeHeaders": []
+     }
+   ]
+   ```
+
+2. Set up proper IAM user permissions for S3 access
+
+3. Test the upload flow:
+   - Click the edit button on profile picture
+   - Select an image file
+   - Verify the upload progress indicator
+   - Confirm the image appears after successful upload
+   - Verify the image persists after page reload
+
+Security Considerations
+---------------------
+1. Implement file type validation on both frontend and backend
+2. Set appropriate file size limits
+3. Use secure S3 bucket policies
+4. Implement proper error handling
+5. Use environment variables for sensitive information
+6. Consider implementing image optimization before upload
+7. Use private S3 bucket with presigned URLs
+8. Implement URL expiration and renewal strategy
+9. Set up proper bucket policies to deny public access
+10. Use IAM roles with minimum required permissions
+
+Error Handling
+-------------
+1. Handle network errors
+2. Handle file type/size validation errors
+3. Handle S3 upload failures
+4. Handle token expiration
+5. Implement proper error messages for user feedback
+
+Best Practices
+-------------
+1. Use environment variables for configuration
+2. Implement proper loading states
+3. Add proper error handling
+4. Use TypeScript for better type safety
+5. Implement proper cleanup of old profile pictures
+6. Add proper logging
+7. Implement retry mechanism for failed uploads
+8. Add proper validation for file types and sizes
+9. Implement proper error messages for users
+10. Use proper security measures for S3 bucket access 
+
+S3 Bucket Configuration
+---------------------
+1. Create a private bucket with all public access blocked
+2. Add the following bucket policy:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "DenyPublicAccess",
+         "Effect": "Deny",
+         "Principal": "*",
+         "Action": "s3:*",
+         "Resource": [
+           "arn:aws:s3:::YOUR-BUCKET-NAME",
+           "arn:aws:s3:::YOUR-BUCKET-NAME/*"
+         ],
+         "Condition": {
+           "Bool": {
+             "aws:SecureTransport": "false"
+           }
+         }
+       }
+     ]
+   }
+   ```
+
+3. IAM User Policy (minimum required permissions):
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": [
+           "s3:PutObject",
+           "s3:GetObject",
+           "s3:DeleteObject"
+         ],
+         "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/profile-pictures/*"
+       }
+     ]
+   }
+   ``` 

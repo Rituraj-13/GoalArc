@@ -10,6 +10,7 @@ import { sendVerificationEmail } from './services/emailService.js';
 import cron from 'node-cron';
 import AuthMiddleware from './Middlewares/AuthMiddleware.js';
 import pomodoroRouter from './routes/pomodoro.js';
+import profilePictureRoutes from './routes/profilePictureRoutes.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(cors())
 app.use(streakCheck);
 app.use('/todos', router);
 app.use('/pomodoro', pomodoroRouter);
+app.use('/user', profilePictureRoutes);
 const port = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 const DB_URL = process.env.MONGO_URL
@@ -38,9 +40,14 @@ const userSchema = new mongoose.Schema({
     joinDate: {
         type: Date,
         default: Date.now
+    },
+    profilePicture: {
+        type: String, // This will hold the profileImage url
+        default: null
     }
 })
 const UserObject = new mongoose.model('userCreds', userSchema);
+export default UserObject;
 
 // First, create a temporary storage for pending registrations
 const pendingRegistrations = new Map(); // This will store temporary user data
@@ -275,7 +282,8 @@ app.get('/user/profile', AuthMiddleware, async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
-            joinDate: user.joinDate
+            joinDate: user.joinDate,
+            profilePicture: user.profilePicture
         });
     } catch (error) {
         res.status(500).json({ msg: 'Server error' });
