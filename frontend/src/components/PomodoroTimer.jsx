@@ -147,7 +147,7 @@ const PomodoroTimer = () => {
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Timer Settings</SheetTitle>
+              <SheetTitle className="mb-2">Timer Settings</SheetTitle>
             </SheetHeader>
             <PomodoroSettings onClose={handleCloseSettings} />
           </SheetContent>
@@ -165,12 +165,12 @@ const PomodoroTimer = () => {
         )}
       </div>
 
-      {/* Only show Sessions Counter when a task is selected */}
+      {/* Only show Sessions Counter when a task is selected
       {selectedTodo && (
         <div className="text-sm text-muted-foreground">
           Completed Sessions: {taskCompletedSessions} / {settings.sessionsUntilLongBreak}
         </div>
-      )}
+      )} */}
 
       {/* Selected Todo */}
       {/* {selectedTodo && (
