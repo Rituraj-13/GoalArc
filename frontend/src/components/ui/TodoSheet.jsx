@@ -7,13 +7,19 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash, Check, X, WandSparkles, Calendar, Clock, BarChart, CheckCircle2, Timer, CircleCheckBig, Hourglass, CalendarClock, BookOpenCheck } from 'lucide-react'
 import MDEditor from "@uiw/react-md-editor"
 import dayjs from 'dayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { StaticDateTimePicker } from '@mui/x-date-pickers'
+import { StaticDateTimePicker, MobileDateTimePicker } from '@mui/x-date-pickers'
 import AIResponse from '@/utils/AIResponse'
 import { commands } from "@uiw/react-md-editor"
 import { toast } from 'react-hot-toast'
@@ -50,6 +56,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     completedSessions: 0,
     totalFocusTime: 0
   });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const formatDate = (date) => {
     if (!date) return '';
@@ -61,6 +68,12 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     if (!date) return '';
     const todoDate = dayjs(date);
     return todoDate.format('dddd, MMMM D, YYYY h:mm A');
+  };
+
+  const formatEditDate = (date) => {
+    if (!date) return '';
+    const todoDate = dayjs(date);
+    return todoDate.format('MMM D, hh:mm A');
   };
 
   const handleSave = () => {
@@ -204,6 +217,19 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
+  // Handle date picker dialog
+  const handleDatePickerClose = (open) => {
+    // Only allow closing through the dialog close button
+    if (!open) {
+      setIsDatePickerOpen(false);
+    }
+  };
+
+  const handleDateChange = (newValue) => {
+    setEditDate(newValue);
+    // Don't close the picker on date/time selection
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -345,7 +371,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                     "text-3xl font-bold mb-1 flex items-center gap-2",
                     isDark ? "text-foreground" : "text-gray-900"
                   )}>
-                    {todo.completed ? <CircleCheckBig className="h-6 w-6 pt-0" /> : <BookOpenCheck className="h-6 w-6 pt-0" />}
+                    {todo.completed ? <CircleCheckBig className="h-6 w-6 pt-0" /> : <BookOpenCheck className="h-8 w-8 pt-2" />}
                     <span>{todo.title}</span>
                   </h1>
                   <div className="flex items-center gap-2 pl-2">
@@ -357,17 +383,24 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       {getStatusText(todo)}
                     </span>
                   </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsEditing(true)}
-                  className={cn(
-                    isDark ? "hover:bg-secondary" : "hover:bg-gray-100"
-                  )}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                  </div>
+                  {
+                    getStatusText(todo) !== "Completed" ? 
+                      (
+                        <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsEditing(true)}
+                        className={cn(
+                          isDark ? "hover:bg-secondary" : "hover:bg-gray-100"
+                        )}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) 
+                    : null
+                  }
+                
               </div>
             )}
 
@@ -427,69 +460,213 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       : "bg-white border-gray-200"
                   )}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <StaticDateTimePicker
-                        value={editDate}
-                        onChange={(newValue) => setEditDate(newValue)}
-                        orientation={isMobile ? "portrait" : "landscape"}
-                        ampm={true}
-                        className={cn(
-                          "w-full",
-                          isMobile && "!max-w-full [&_.MuiPickersLayout-root]:!max-w-full",
-                          isDark && [
-                            "[&_.MuiTypography-root]:!text-gray-200",
-                            "[&_.MuiPickersCalendarHeader-root]:!text-gray-200",
-                            "[&_.MuiDayCalendar-weekDayLabel]:!text-gray-400",
-                            "[&_.MuiPickersDay-root]:!text-gray-200",
-                            "[&_.MuiClock-pin]:!bg-primary",
-                            "[&_.MuiClockPointer-root]:!bg-primary",
-                            "[&_.MuiClockPointer-thumb]:!bg-primary",
-                            "[&_.MuiClock-clock]:!text-gray-200",
-                            "[&_.MuiTimePickerToolbar-hourMinuteLabel]:!text-gray-200",
-                            "[&_.MuiIconButton-root]:!text-gray-200",
-                            "[&_.MuiSvgIcon-root]:!text-gray-200",
-                            "[&_.MuiPickersYear-yearButton]:!text-gray-200",
-                            "[&_.MuiPickersMonth-monthButton]:!text-gray-200",
-                            "[&_.MuiPickersArrowSwitcher-button]:!text-gray-200",
-                            "[&_.MuiPickersArrowSwitcher-button>.MuiSvgIcon-root]:!text-gray-200",
-                            "[&_.MuiClockNumber-root]:!text-gray-200",
-                            "[&_.Mui-selected]:!text-white",
-                            "[&_.Mui-selected]:!font-bold",
-                            "[&_.Mui-selected]:!shadow-md",
-                            "[&_.MuiPickersDay-today]:!border-[#9F7AEA]",
-                            "[&_.MuiPickersDay-today]:!border-2",
-                            "[&_.MuiPickersDay-root:hover]:!bg-[#9F7AEA]/20",
-                            "[&_.MuiClockNumber-root]:hover:!bg-[#9F7AEA]/20",
-                            "[&_.MuiClockPointer-root>div]:!bg-[#9F7AEA]",
-                            "[&_.MuiClockPointer-root]:after:!bg-[#9F7AEA]",
-                            "[&_.MuiClockPointer-root]:!bg-[#9F7AEA]"
-                          ]
-                        )}
-                        slotProps={{
-                          actionBar: {
-                            actions: [],
-                          },
-                          toolbar: {
-                            hidden: false,
-                          },
-                          layout: {
-                            sx: {
-                              width: '100%',
-                              '& .MuiDateCalendar-root': {
-                                maxHeight: isMobile ? '300px' : '280px',
+                      {isMobile ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left font-normal"
+                            onClick={() => setIsDatePickerOpen(true)}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {editDate ? formatEditDate(editDate) : "Pick a date and time"}
+                          </Button>
+                          <Dialog
+                            open={isDatePickerOpen}
+                            onOpenChange={handleDatePickerClose}
+                          >
+                            <DialogContent className={cn(
+                              isMobile ? "w-screen h-[100dvh] max-w-none p-0 gap-0" : "sm:max-w-[425px]"
+                            )}>
+                              <DialogHeader className={cn(
+                                isMobile && "px-4 py-3 border-b"
+                              )}>
+                                <DialogTitle>Select Date & Time</DialogTitle>
+                              </DialogHeader>
+                              <div className={cn(
+                                "py-4",
+                                isMobile && "px-4"
+                              )}>
+                                <StaticDateTimePicker
+                                  value={editDate}
+                                  onChange={handleDateChange}
+                                  orientation="portrait"
+                                  ampm={true}
+                                  className={cn(
+                                    "w-full",
+                                    isDark ? "[&_.MuiPickersLayout-root]:!bg-background" : "[&_.MuiPickersLayout-root]:!bg-white",
+                                    isDark && [
+                                      // Calendar styles
+                                      "[&_.MuiPickersCalendarHeader-root]:!text-gray-200",
+                                      "[&_.MuiPickersCalendarHeader-label]:!text-gray-200",
+                                      "[&_.MuiDayCalendar-header]:!text-gray-200",
+                                      "[&_.MuiDayCalendar-weekDayLabel]:!text-gray-400",
+                                      "[&_.MuiPickersDay-root]:!text-gray-200",
+                                      "[&_.MuiPickersDay-root]:!bg-background",
+                                      "[&_.MuiPickersDay-root:hover]:!bg-[#9F7AEA]/20",
+                                      "[&_.MuiPickersDay-root.Mui-selected]:!bg-[#9F7AEA]",
+                                      "[&_.MuiPickersDay-root.Mui-selected]:!text-white",
+                                      "[&_.MuiPickersDay-today]:!border-[#9F7AEA]",
+                                      "[&_.MuiPickersDay-today]:!border-2",
+                                      // Clock styles
+                                      "[&_.MuiClock-clock]:!bg-background",
+                                      "[&_.MuiClock-clock]:!text-gray-200",
+                                      "[&_.MuiClockNumber-root]:!text-gray-200",
+                                      "[&_.MuiClockNumber-root.Mui-selected]:!bg-[#9F7AEA]",
+                                      "[&_.MuiClockNumber-root.Mui-selected]:!text-white",
+                                      "[&_.MuiClockNumber-root:hover]:!bg-[#9F7AEA]/20",
+                                      "[&_.MuiClock-pin]:!bg-[#9F7AEA]",
+                                      "[&_.MuiClockPointer-root]:!bg-[#9F7AEA]",
+                                      "[&_.MuiClockPointer-thumb]:!bg-[#9F7AEA]",
+                                      // Toolbar styles
+                                      "[&_.MuiPickersToolbar-root]:!bg-background",
+                                      "[&_.MuiPickersToolbar-root]:!text-gray-200",
+                                      "[&_.MuiTypography-root]:!text-gray-200",
+                                      "[&_.MuiPickersToolbarText-root]:!text-gray-200",
+                                      "[&_.MuiPickersToolbarText-root.Mui-selected]:!text-[#9F7AEA]",
+                                      // Button styles
+                                      "[&_.MuiIconButton-root]:!text-gray-200",
+                                      "[&_.MuiIconButton-root:hover]:!bg-[#9F7AEA]/20",
+                                      "[&_.MuiIconButton-root.Mui-selected]:!text-[#9F7AEA]",
+                                      // View switching buttons
+                                      "[&_.MuiPickersArrowSwitcher-button]:!text-gray-200",
+                                      "[&_.MuiPickersArrowSwitcher-button:hover]:!bg-[#9F7AEA]/20",
+                                      "[&_.MuiPickersArrowSwitcher-button>.MuiSvgIcon-root]:!text-gray-200"
+                                    ]
+                                  )}
+                                  slotProps={{
+                                    actionBar: {
+                                      actions: [],
+                                    },
+                                    toolbar: {
+                                      hidden: false,
+                                      className: isDark ? "bg-background" : "bg-white",
+                                    },
+                                    layout: {
+                                      sx: {
+                                        width: '100%',
+                                        bgcolor: 'transparent',
+                                        '& .MuiDateCalendar-root': {
+                                          maxHeight: '300px',
+                                          width: '100%',
+                                          color: isDark ? 'rgb(229 231 235)' : 'inherit',
+                                          bgcolor: 'transparent'
+                                        },
+                                        '& .MuiClock-root': {
+                                          maxHeight: '250px',
+                                          width: '100%',
+                                          bgcolor: 'transparent',
+                                          color: isDark ? 'rgb(229 231 235)' : 'inherit'
+                                        },
+                                        '& .MuiPickersLayout-contentWrapper': {
+                                          bgcolor: 'transparent'
+                                        },
+                                        '& .MuiDialogActions-root': {
+                                          display: 'none'
+                                        }
+                                      }
+                                    },
+                                    // Add specific props for day and time views
+                                    day: {
+                                      sx: {
+                                        bgcolor: 'transparent',
+                                        '&.Mui-selected': {
+                                          bgcolor: '#9F7AEA !important',
+                                          color: 'white !important'
+                                        }
+                                      }
+                                    },
+                                    minuteView: {
+                                      sx: {
+                                        bgcolor: 'transparent'
+                                      }
+                                    },
+                                    hourView: {
+                                      sx: {
+                                        bgcolor: 'transparent'
+                                      }
+                                    }
+                                  }}
+                                  minDateTime={dayjs().startOf('day')}
+                                />
+                              </div>
+                              <div className={cn(
+                                "flex justify-end mt-4",
+                                isMobile && "px-4 py-4 border-t"
+                              )}>
+                                <Button
+                                  className="bg-primary hover:bg-primary/90 text-white"
+                                  onClick={() => setIsDatePickerOpen(false)}
+                                >
+                                  Done
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </>
+                      ) : (
+                        <StaticDateTimePicker
+                          value={editDate}
+                          onChange={handleDateChange}
+                          orientation="landscape"
+                          ampm={true}
+                          className={cn(
+                            "w-full",
+                            isDark && [
+                              "[&_.MuiTypography-root]:!text-gray-200",
+                              "[&_.MuiPickersCalendarHeader-root]:!text-gray-200",
+                              "[&_.MuiDayCalendar-weekDayLabel]:!text-gray-400",
+                              "[&_.MuiPickersDay-root]:!text-gray-200",
+                              "[&_.MuiClock-pin]:!bg-primary",
+                              "[&_.MuiClockPointer-root]:!bg-primary",
+                              "[&_.MuiClockPointer-thumb]:!bg-primary",
+                              "[&_.MuiClock-clock]:!text-gray-200",
+                              "[&_.MuiTimePickerToolbar-hourMinuteLabel]:!text-gray-200",
+                              "[&_.MuiIconButton-root]:!text-gray-200",
+                              "[&_.MuiSvgIcon-root]:!text-gray-200",
+                              "[&_.MuiPickersYear-yearButton]:!text-gray-200",
+                              "[&_.MuiPickersMonth-monthButton]:!text-gray-200",
+                              "[&_.MuiPickersArrowSwitcher-button]:!text-gray-200",
+                              "[&_.MuiPickersArrowSwitcher-button>.MuiSvgIcon-root]:!text-gray-200",
+                              "[&_.MuiClockNumber-root]:!text-gray-200",
+                              "[&_.Mui-selected]:!text-white",
+                              "[&_.Mui-selected]:!font-bold",
+                              "[&_.Mui-selected]:!shadow-md",
+                              "[&_.MuiPickersDay-today]:!border-[#9F7AEA]",
+                              "[&_.MuiPickersDay-today]:!border-2",
+                              "[&_.MuiPickersDay-root:hover]:!bg-[#9F7AEA]/20",
+                              "[&_.MuiClockNumber-root]:hover:!bg-[#9F7AEA]/20",
+                              "[&_.MuiClockPointer-root>div]:!bg-[#9F7AEA]",
+                              "[&_.MuiClockPointer-root]:after:!bg-[#9F7AEA]",
+                              "[&_.MuiClockPointer-root]:!bg-[#9F7AEA]"
+                            ]
+                          )}
+                          slotProps={{
+                            actionBar: {
+                              actions: [],
+                            },
+                            toolbar: {
+                              hidden: false,
+                            },
+                            layout: {
+                              sx: {
                                 width: '100%',
-                                color: isDark ? 'rgb(229 231 235)' : 'inherit'
-                              },
-                              '& .MuiClock-root': {
-                                maxHeight: isMobile ? '250px' : '220px',
-                                width: '100%',
-                                backgroundColor: 'transparent',
-                                color: isDark ? 'rgb(229 231 235)' : 'inherit'
+                                '& .MuiDateCalendar-root': {
+                                  maxHeight: '280px',
+                                  width: '100%',
+                                  color: isDark ? 'rgb(229 231 235)' : 'inherit'
+                                },
+                                '& .MuiClock-root': {
+                                  maxHeight: '220px',
+                                  width: '100%',
+                                  backgroundColor: 'transparent',
+                                  color: isDark ? 'rgb(229 231 235)' : 'inherit'
+                                }
                               }
                             }
-                          }
-                        }}
-                        minDateTime={dayjs().startOf('day')}
-                      />
+                          }}
+                          minDateTime={dayjs().startOf('day')}
+                        />
+                      )}
                     </LocalizationProvider>
                   </div>
                 ) : (
