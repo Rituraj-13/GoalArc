@@ -96,6 +96,9 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
 
   const handleToggleComplete = async (e) => {
     e.stopPropagation();
+    // Prevent unchecking if already completed
+    if (todo.completed) return;
+
     try {
       setIsLoading(true);
       await onToggleComplete(todo._id);
@@ -248,15 +251,16 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => { }}
-                  disabled={isLoading}
+                  onChange={() => !todo.completed && onToggleComplete()}
+                  disabled={isLoading || todo.completed}
                   className={cn(
                     "peer h-5 w-5 cursor-pointer appearance-none rounded-full border-2 transition-all",
                     isDark
                       ? "border-gray-600 hover:border-primary/50"
                       : "border-gray-400 hover:border-blue-500/50",
                     "checked:border-primary checked:hover:border-primary/90",
-                    isLoading && "opacity-50 cursor-wait"
+                    (isLoading || todo.completed) && "opacity-50 cursor-not-allowed",
+                    todo.completed && "!border-primary"
                   )}
                 />
                 <Check
@@ -383,11 +387,11 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       {getStatusText(todo)}
                     </span>
                   </div>
-                  </div>
-                  {
-                    getStatusText(todo) !== "Completed" ? 
-                      (
-                        <Button
+                </div>
+                {
+                  getStatusText(todo) !== "Completed" ?
+                    (
+                      <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsEditing(true)}
@@ -397,10 +401,10 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                    ) 
+                    )
                     : null
-                  }
-                
+                }
+
               </div>
             )}
 
