@@ -15,7 +15,7 @@ import { generatePresignedUrl } from './config/s3Config.js';
 import Streak from "./models/Streak.js";
 import leaderBoard from "./models/leaderBoard.js";
 import leaderBoardRouter from './routes/leaderBoardRanking.js';
-import { updateAllLeaderboardEntries } from "./services/leaderboardService.js";
+import { updateAllLeaderboardEntries, updateLeaderboardEntry } from "./services/leaderboardService.js";
 
 dotenv.config();
 
@@ -279,6 +279,8 @@ cron.schedule('0 0 * * *', async () => {
         const streaks = await Streak.find({});
         const now = new Date();
 
+        console.log(`Running daily streak check for ${streaks.length} users`);
+
         for (const streak of streaks) {
             if (!streak.lastCompletionDate) continue;
 
@@ -290,9 +292,14 @@ cron.schedule('0 0 * * *', async () => {
             );
 
             if (daysSinceLastCompletion > 1) {
+                console.log(`Resetting streak for user ${streak.user}`);
                 streak.currentStreak = 0;
                 streak.lastCompletionDate = null;
                 await streak.save();
+
+                // Update leaderboard when streak is reset
+                await updateLeaderboardEntry(streak.user);
+                console.log(`Leaderboard updated for user ${streak.user}`);
             }
         }
     } catch (error) {

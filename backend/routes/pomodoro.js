@@ -96,6 +96,12 @@ router.post('/sessions', async (req, res) => {
             });
         }
 
+        // If the session is already marked as completed, update the leaderboard
+        if (completed) {
+            console.log(`New session is already completed, updating leaderboard for user ${req.userId}`);
+            await updateLeaderboardEntry(req.userId);
+        }
+
         res.json(session);
     } catch (error) {
         console.error('Error creating session:', error);

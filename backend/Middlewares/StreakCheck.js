@@ -1,4 +1,5 @@
 import Streak from "../models/Streak.js";
+import { updateLeaderboardEntry } from "../services/leaderboardService.js";
 
 export default async function streakCheck(req, res, next) {
     try {
@@ -27,6 +28,10 @@ export default async function streakCheck(req, res, next) {
                     streak.currentStreak = 0;
                     streak.lastCompletionDate = null;
                     await streak.save();
+
+                    // Update leaderboard when streak is reset
+                    await updateLeaderboardEntry(req.userId);
+                    console.log(`Streak reset for user ${req.userId}, leaderboard updated`);
                 }
             }
         }

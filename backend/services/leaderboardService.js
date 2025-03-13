@@ -1,8 +1,30 @@
 import leaderBoard from "../models/leaderBoard.js";
 import mongoose from "mongoose";
 
+// Keep track of recent updates to prevent duplicate updates
+const recentUpdates = new Map();
+
 export const updateLeaderboardEntry = async (userId) => {
     try {
+        // Check if this user's leaderboard was recently updated (within the last 5 seconds)
+        const now = Date.now();
+        const lastUpdate = recentUpdates.get(userId);
+
+        if (lastUpdate && (now - lastUpdate < 5000)) {
+            console.log(`Skipping leaderboard update for user ${userId} - last update was ${(now - lastUpdate) / 1000} seconds ago`);
+            return null;
+        }
+
+        // Mark this user as recently updated
+        recentUpdates.set(userId, now);
+
+        // Clean up old entries from the map (older than 1 minute)
+        for (const [key, timestamp] of recentUpdates.entries()) {
+            if (now - timestamp > 60000) {
+                recentUpdates.delete(key);
+            }
+        }
+
         console.log(`Updating leaderboard for user: ${userId}`);
 
         // Find LeaderBoard's Entry
