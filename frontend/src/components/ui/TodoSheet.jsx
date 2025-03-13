@@ -214,11 +214,23 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     fetchStats();
   }, [todo._id]);
 
-  const formatDuration = (minutes) => {
+  // const formatDuration = (minutes) => {
+  //   const hours = Math.floor(minutes / 60);
+  //   const mins = minutes % 60;
+  //   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  // };
+
+  const formatDuration = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
+    const remainingMinutes = minutes % 60;
+
+    if (hours > 0) {
+        return `${hours}h ${remainingMinutes}m`;
+    } else {
+        return `${remainingMinutes}m`;
+    }
+};
 
   // Handle date picker dialog
   const handleDatePickerClose = (open) => {
