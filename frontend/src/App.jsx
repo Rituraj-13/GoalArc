@@ -52,11 +52,11 @@ export default function App({ children }) {
             <Route path="/leaderboard"
               element={
                 isAuthenticated ?
-                  <Leaderboard /> :
+                  <Leaderboard setIsAuthenticated={setIsAuthenticated} /> :
                   <Navigate to="/auth" />
               }
             />
-            
+
             <Route path="/overview" element={
               isAuthenticated ?
                 <Dashboard /> :
