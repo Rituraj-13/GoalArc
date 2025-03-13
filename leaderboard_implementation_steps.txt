@@ -1,0 +1,766 @@
+# Leaderboard Implementation Guide
+
+This guide outlines the steps needed to implement a complete leaderboard functionality in your Todo application. The leaderboard will display the top 10 users based on their score, which is calculated from their total Pomodoro duration, current streak, and highest streak.
+
+For each step, you'll find:
+1. **Instructions**: What you need to do, explained point by point
+2. **Solution**: The complete code solution you can refer to if needed
+
+## Step 1: Complete the Streak Model
+
+### Instructions:
+1. Check if your Streak model has all the necessary fields
+2. Ensure it includes:
+   - User reference field
+   - Current streak tracking field
+   - Highest streak tracking field
+   - Last completion date field
+3. If any fields are missing, add them to your model
+
+### Solution:
+Your Streak model appears to be implemented correctly with the following structure:
+```javascript
+// backend/models/Streak.js
+import mongoose from "mongoose";
+
+const streakSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'userCreds',
+        required: true
+    },
+    currentStreak: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    lastCompletionDate: {
+        type: Date,
+        default: null
+    },
+    highestStreak: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    lastUpdatedDay: {
+        type: Date,
+        default: null
+    },
+    timezone: {
+        type: String,
+        default: 'UTC'
+    }
+});
+
+streakSchema.pre('save', function(next) {
+    if (this.currentStreak > this.highestStreak) {
+        this.highestStreak = this.currentStreak;
+    }
+    next();
+});
+
+export default mongoose.model('Streak', streakSchema);
+```
+
+## Step 2: Fix the LeaderBoard Model
+
+### Instructions:
+1. Open your `backend/models/leaderBoard.js` file
+2. Make the `profilePicture` field optional by changing `required: true` to `required: false`
+3. Fix the pre-save middleware for getting streak data:
+   - Change from using `findById` to `findOne` with the user field
+   - Add default values if no streak is found
+
+### Solution:
+```javascript
+// In backend/models/leaderBoard.js
+// Change this:
+profilePicture: {
+    type: String,
+    required: true
+}
+
+// To this:
+profilePicture: {
+    type: String,
+    required: false // Change from true to false
+}
+
+// Then fix the pre-save middleware:
+
+// For getting the Currentstreak of the user
+leaderBoardSchema.pre('save', async function (next) {
+    try {
+        // Change from findById to findOne with user field
+        const streakProfile = await this.model('Streak').findOne({ user: this.user });
+        if (streakProfile) {
+            this.currentStreak = streakProfile.currentStreak;
+        } else {
+            this.currentStreak = 0; // Default value if no streak found
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+// For getting the highest streak of the user
+leaderBoardSchema.pre('save', async function (next) {
+    try {
+        // Change from findById to findOne with user field
+        const streakProfile = await this.model('Streak').findOne({ user: this.user });
+        if (streakProfile) {
+            this.highestStreak = streakProfile.highestStreak;
+        } else {
+            this.highestStreak = 0; // Default value if no streak found
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+```
+
+## Step 3: Complete the LeaderBoard Route
+
+### Instructions:
+1. Open or create `backend/routes/leaderBoardRanking.js`
+2. Fix the existing `/leaderboard` route by adding the missing `await` keyword
+3. Add a new route `/my-rank` to get the user's own ranking
+4. Make sure to export the router at the end of the file
+
+### Solution:
+```javascript
+// In backend/routes/leaderBoardRanking.js
+import express from "express";
+import { generatePresignedUrl } from "../config/s3Config";
+import leaderBoard from "../models/leaderBoard";
+import AuthMiddleware from "../Middlewares/AuthMiddleware";
+
+const router = express.Router();
+
+router.get('/leaderboard', async (req, res) => {
+    try {
+        // Add await here - it was missing
+        const leaderboardEntries = await leaderBoard.find().sort({ score: -1 }).limit(10);
+
+        const leaderboardWithUrls = await Promise.all(
+            leaderboardEntries.map(async (entry) => {
+                let profilePictureUrl = null;
+                if (entry.profilePicture) {
+                    profilePictureUrl = await generatePresignedUrl(entry.profilePicture);
+                }
+                return {
+                    ...entry.toObject(),
+                    profilePicture: profilePictureUrl
+                };
+            })
+        );
+        res.json(leaderboardWithUrls);
+    } catch (error) {
+        console.error('Error Fetching LeaderBoard: ', error);
+        res.status(500).json({ message: "Error fetching Leaderboard" });
+    }
+});
+
+// Add route to get user's own ranking
+router.get('/my-rank', AuthMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId;
+        
+        // Get all users sorted by score
+        const allUsers = await leaderBoard.find().sort({ score: -1 });
+        
+        // Find the user's position
+        const userIndex = allUsers.findIndex(user => user.user.toString() === userId);
+        
+        if (userIndex === -1) {
+            return res.status(404).json({ message: "User not found in leaderboard" });
+        }
+        
+        // Get the user's entry
+        const userEntry = allUsers[userIndex];
+        let profilePictureUrl = null;
+        if (userEntry.profilePicture) {
+            profilePictureUrl = await generatePresignedUrl(userEntry.profilePicture);
+        }
+        
+        res.json({
+            rank: userIndex + 1, // +1 because array is 0-indexed
+            totalUsers: allUsers.length,
+            userDetails: {
+                ...userEntry.toObject(),
+                profilePicture: profilePictureUrl
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching user rank:', error);
+        res.status(500).json({ message: "Error fetching user rank" });
+    }
+});
+
+// Export the router
+export default router;
+```
+
+## Step 4: Add Leaderboard Entry Creation on User Registration
+
+### Instructions:
+1. Open `backend/auth.js`
+2. Find the `/verify-otp` endpoint
+3. After the user is created and saved, add code to:
+   - Create a streak entry for the new user
+   - Create a leaderboard entry for the new user
+4. Make sure to import the necessary models at the top of the file
+
+### Solution:
+```javascript
+// In backend/auth.js - modify the verify-otp endpoint
+// First, add these imports at the top if not already present:
+import leaderBoard from './models/leaderBoard.js';
+import Streak from './models/Streak.js';
+
+// Then modify the verify-otp endpoint:
+app.post('/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+
+    try {
+        const pendingUser = pendingRegistrations.get(email);
+
+        if (!pendingUser) {
+            return res.status(404).json({ msg: 'Verification session expired or not found' });
+        }
+
+        if (pendingUser.verificationOTP !== otp) {
+            return res.status(400).json({ msg: 'Invalid OTP' });
+        }
+
+        if (pendingUser.otpExpiry < new Date()) {
+            pendingRegistrations.delete(email);
+            return res.status(400).json({ msg: 'OTP expired' });
+        }
+
+        // If this is an email update verification
+        if (pendingUser.isEmailUpdate) {
+            pendingRegistrations.delete(email);
+            return res.json({
+                msg: 'Email verified successfully'
+            });
+        }
+
+        // Regular signup verification flow
+        const newUser = new UserObject({
+            username: pendingUser.username,
+            password: pendingUser.password,
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName,
+            isVerified: true
+        });
+        await newUser.save();
+
+        // Create a streak entry for the new user
+        const newStreak = new Streak({
+            user: newUser._id,
+            currentStreak: 0,
+            highestStreak: 0
+        });
+        await newStreak.save();
+
+        // Create a leaderboard entry for the new user
+        const leaderboardEntry = new leaderBoard({
+            user: newUser._id,
+            email: newUser.username,
+            username: `${pendingUser.firstName} ${pendingUser.lastName}`.trim(),
+            profilePicture: newUser.profilePicture || null,
+            currentStreak: 0,
+            highestStreak: 0,
+            totalDuration: 0,
+            score: 0
+        });
+        await leaderboardEntry.save();
+
+        pendingRegistrations.delete(email);
+
+        res.json({
+            msg: 'Email verified successfully',
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName
+        });
+    } catch (error) {
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+});
+```
+
+## Step 5: Register the Leaderboard Routes in the Main App
+
+### Instructions:
+1. Open `backend/auth.js` (your main Express app file)
+2. Add the necessary imports at the top of the file
+3. Register the leaderboard routes with your Express app
+4. Place this registration near your other route registrations
+
+### Solution:
+```javascript
+// In backend/auth.js - add these imports at the top
+import leaderBoardRouter from './routes/leaderBoardRanking.js';
+
+// Then add this line where you register other routes (near app.use('/pomodoro', pomodoroRouter); etc.)
+app.use('/api', leaderBoardRouter);
+```
+
+## Step 6: Create a Leaderboard Service
+
+### Instructions:
+1. Create a new file `backend/services/leaderboardService.js`
+2. Implement a function to update a user's leaderboard entry
+3. Make sure to handle cases where a user doesn't have a leaderboard entry yet
+
+### Solution:
+```javascript
+// Create a new file: backend/services/leaderboardService.js
+import leaderBoard from '../models/leaderBoard.js';
+import mongoose from 'mongoose';
+
+export const updateLeaderboardEntry = async (userId) => {
+    try {
+        // Find the user's leaderboard entry
+        let entry = await leaderBoard.findOne({ user: userId });
+        
+        // If no entry exists, create one
+        if (!entry) {
+            entry = new leaderBoard({
+                user: userId,
+                currentStreak: 0,
+                highestStreak: 0,
+                totalDuration: 0,
+                score: 0
+            });
+        }
+        
+        // Save the entry (this will trigger the pre-save hooks that update the stats)
+        await entry.save();
+        
+        return entry;
+    } catch (error) {
+        console.error('Error updating leaderboard:', error);
+        throw error;
+    }
+};
+
+export const updateAllLeaderboardEntries = async () => {
+    try {
+        // Get all users
+        const users = await mongoose.model('userCreds').find({});
+        
+        // Update leaderboard for each user
+        for (const user of users) {
+            await updateLeaderboardEntry(user._id);
+        }
+        
+        console.log(`Updated leaderboard for ${users.length} users`);
+    } catch (error) {
+        console.error('Error updating all leaderboard entries:', error);
+        throw error;
+    }
+};
+```
+
+## Step 7: Update Leaderboard on Pomodoro Completion
+
+### Instructions:
+1. Open `backend/routes/pomodoro.js`
+2. Find the route that completes a Pomodoro session
+3. Add the import for the leaderboard service
+4. Call the `updateLeaderboardEntry` function after a session is completed
+
+### Solution:
+```javascript
+// In backend/routes/pomodoro.js - add this import at the top
+import { updateLeaderboardEntry } from '../services/leaderboardService.js';
+
+// Then modify the complete session route:
+router.put('/sessions/:id/complete', async (req, res) => {
+    try {
+        const session = await PomodoroSession.findByIdAndUpdate(
+            req.params.id,
+            {
+                completed: true,
+                endTime: new Date()
+            },
+            { new: true }
+        );
+
+        // Update the leaderboard entry
+        await updateLeaderboardEntry(req.userId);
+
+        res.json(session);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to complete session' });
+    }
+});
+```
+
+## Step 8: Update Leaderboard on Streak Changes
+
+### Instructions:
+1. Find where streak updates happen in your code (likely in a route handler)
+2. Import the leaderboard service
+3. Call the `updateLeaderboardEntry` function after a streak is updated
+
+### Solution:
+```javascript
+// In your streak update logic (e.g., in backend/routes/todo.js)
+// Add this import at the top
+import { updateLeaderboardEntry } from '../services/leaderboardService.js';
+
+// Then add this after updating a streak
+// For example, if you have a route that updates streaks:
+router.post('/check-streak', async (req, res) => {
+    try {
+        // Your existing streak update logic
+        // ...
+        
+        // After updating the streak
+        await updateLeaderboardEntry(req.userId);
+        
+        res.json({ message: 'Streak updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update streak' });
+    }
+});
+```
+
+## Step 9: Add Scheduled Updates for Leaderboard
+
+### Instructions:
+1. Open `backend/auth.js` where your cron jobs are defined
+2. Import the `updateAllLeaderboardEntries` function
+3. Add a new cron job to update all leaderboard entries daily at midnight
+
+### Solution:
+```javascript
+// In backend/auth.js - add this import with your other imports
+import { updateAllLeaderboardEntries } from './services/leaderboardService.js';
+
+// Add this with your other cron jobs
+cron.schedule('0 0 * * *', async () => {
+    console.log('Running daily leaderboard update');
+    try {
+        await updateAllLeaderboardEntries();
+    } catch (error) {
+        console.error('Error updating leaderboard:', error);
+    }
+});
+```
+
+## Step 10: Create Frontend Leaderboard Component
+
+### Instructions:
+1. Create a new file `frontend/src/components/Leaderboard.jsx`
+2. Implement a React component that:
+   - Fetches leaderboard data from the API
+   - Fetches the user's own rank
+   - Displays the top 10 users in a table
+   - Shows the user's own rank separately
+3. Handle loading states and errors appropriately
+
+### Solution:
+```jsx
+// Create a new file: frontend/src/components/Leaderboard.jsx
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+
+const Leaderboard = () => {
+    const [leaderboardData, setLeaderboardData] = useState([]);
+    const [userRank, setUserRank] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLeaderboard = async () => {
+            try {
+                const token = localStorage.getItem('todoToken');
+                if (!token) return;
+
+                const [leaderboardResponse, rankResponse] = await Promise.all([
+                    axios.get('http://localhost:3000/api/leaderboard'),
+                    axios.get('http://localhost:3000/api/my-rank', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ]);
+
+                setLeaderboardData(leaderboardResponse.data);
+                setUserRank(rankResponse.data);
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+                toast.error('Failed to load leaderboard data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLeaderboard();
+    }, []);
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-64">Loading leaderboard...</div>;
+    }
+
+    return (
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <div className="p-6">
+                <h2 className="text-2xl font-bold mb-6 text-center">Leaderboard</h2>
+                
+                {userRank && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h3 className="font-semibold text-lg mb-2">Your Ranking</h3>
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center">
+                                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+                                    {userRank.rank}
+                                </div>
+                                <div>
+                                    <p className="font-medium">{userRank.userDetails.username}</p>
+                                    <p className="text-sm text-gray-600">Score: {userRank.userDetails.score}</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm">Streak: {userRank.userDetails.currentStreak} days</p>
+                                <p className="text-sm">Total Time: {Math.round(userRank.userDetails.totalDuration / 60)} min</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="px-4 py-2 text-left">Rank</th>
+                                <th className="px-4 py-2 text-left">User</th>
+                                <th className="px-4 py-2 text-right">Streak</th>
+                                <th className="px-4 py-2 text-right">Total Time</th>
+                                <th className="px-4 py-2 text-right">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {leaderboardData.map((entry, index) => (
+                                <tr key={entry._id} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
+                                    <td className="px-4 py-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                            {index + 1}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center">
+                                            {entry.profilePicture ? (
+                                                <img 
+                                                    src={entry.profilePicture} 
+                                                    alt={entry.username} 
+                                                    className="w-8 h-8 rounded-full mr-2"
+                                                />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-gray-300 mr-2"></div>
+                                            )}
+                                            <span>{entry.username}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-right">{entry.currentStreak} days</td>
+                                    <td className="px-4 py-3 text-right">{Math.round(entry.totalDuration / 60)} min</td>
+                                    <td className="px-4 py-3 text-right font-semibold">{entry.score}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Leaderboard;
+```
+
+## Step 11: Add Leaderboard to Frontend Routing
+
+### Instructions:
+1. Open your main routing file (likely `frontend/src/App.jsx` or similar)
+2. Import the Leaderboard component
+3. Add a new route for the leaderboard page
+4. Add a navigation link to the leaderboard in your app's navigation menu
+
+### Solution:
+```jsx
+// In your main App.jsx or wherever you handle routing
+import Leaderboard from './components/Leaderboard';
+
+// Add this to your routes
+<Route path="/leaderboard" element={<Leaderboard />} />
+
+// Add a link to the leaderboard in your navigation
+<Link to="/leaderboard" className="text-blue-600 hover:text-blue-800">
+  Leaderboard
+</Link>
+```
+
+## Step 12: Create a Badge Component (Optional)
+
+### Instructions:
+1. Create a new file `frontend/src/components/LeaderboardBadge.jsx`
+2. Implement a component that displays different badges based on rank or streak
+3. Use different colors and text for different achievement levels
+4. Import and use this component in your Leaderboard component
+
+### Solution:
+```jsx
+// Create a new file: frontend/src/components/LeaderboardBadge.jsx
+import React from 'react';
+
+const LeaderboardBadge = ({ rank, type }) => {
+    let badgeColor = 'bg-gray-500';
+    let badgeText = '';
+    
+    if (type === 'rank') {
+        if (rank === 1) {
+            badgeColor = 'bg-yellow-500';
+            badgeText = '1st Place';
+        } else if (rank === 2) {
+            badgeColor = 'bg-gray-400';
+            badgeText = '2nd Place';
+        } else if (rank === 3) {
+            badgeColor = 'bg-amber-700';
+            badgeText = '3rd Place';
+        }
+    } else if (type === 'streak') {
+        if (rank >= 30) {
+            badgeColor = 'bg-purple-600';
+            badgeText = 'Streak Master';
+        } else if (rank >= 14) {
+            badgeColor = 'bg-blue-600';
+            badgeText = 'Streak Pro';
+        } else if (rank >= 7) {
+            badgeColor = 'bg-green-600';
+            badgeText = 'Streak Starter';
+        }
+    }
+    
+    if (!badgeText) return null;
+    
+    return (
+        <span className={`${badgeColor} text-white text-xs px-2 py-1 rounded-full`}>
+            {badgeText}
+        </span>
+    );
+};
+
+export default LeaderboardBadge;
+
+// To use this in your Leaderboard component, add:
+import LeaderboardBadge from './LeaderboardBadge';
+
+// Then in your table row:
+<td className="px-4 py-3">
+    <div className="flex items-center">
+        <span>{entry.username}</span>
+        <LeaderboardBadge rank={index + 1} type="rank" />
+        <LeaderboardBadge rank={entry.currentStreak} type="streak" />
+    </div>
+</td>
+```
+
+## Step 13: Testing Your Implementation
+
+### Instructions:
+1. Test user registration:
+   - Create a new user account
+   - Verify the OTP
+   - Check the database to confirm a leaderboard entry was created
+   
+2. Test pomodoro completion:
+   - Complete a pomodoro session
+   - Check that the user's score updates in the leaderboard
+   
+3. Test streak updates:
+   - Complete tasks on consecutive days
+   - Verify the streak increases
+   - Check that the score updates accordingly
+   
+4. Test the leaderboard display:
+   - Navigate to the leaderboard page
+   - Verify the top users are displayed correctly
+   - Check that your own rank is shown
+
+### Solution:
+No code solution needed for testing - just follow the instructions and verify each step works as expected.
+
+## Troubleshooting Common Issues
+
+### Missing Leaderboard Entries
+**Problem**: A user doesn't appear in the leaderboard.
+**Solution**: Check if their entry was created during registration. You may need to manually create entries for existing users:
+
+```javascript
+// Run this in a script or route handler to create entries for existing users
+const createMissingLeaderboardEntries = async () => {
+    const users = await mongoose.model('userCreds').find({});
+    
+    for (const user of users) {
+        const existingEntry = await leaderBoard.findOne({ user: user._id });
+        if (!existingEntry) {
+            console.log(`Creating leaderboard entry for user: ${user.username}`);
+            await updateLeaderboardEntry(user._id);
+        }
+    }
+};
+```
+
+### Score Not Updating
+**Problem**: Completing pomodoros or updating streaks doesn't change the score.
+**Solution**: Verify the updateLeaderboardEntry function is being called:
+
+1. Add console logs to confirm the function is called
+2. Check that the pre-save hooks in the leaderBoard model are working correctly
+3. Verify that the score calculation formula is correct
+
+### Incorrect Ranking
+**Problem**: Users are not ranked correctly.
+**Solution**: Ensure the sort order is correct:
+
+```javascript
+// Make sure you're sorting by score in descending order
+const leaderboardEntries = await leaderBoard.find().sort({ score: -1 }).limit(10);
+```
+
+### Profile Pictures Not Showing
+**Problem**: Profile pictures don't appear in the leaderboard.
+**Solution**: Check the generatePresignedUrl function:
+
+1. Verify the S3 configuration is correct
+2. Add error handling around the generatePresignedUrl calls
+3. Check that profile pictures are being saved with the correct path
+
+## Conclusion
+
+This implementation creates a complete leaderboard system that:
+- Automatically creates entries for new users
+- Updates scores based on pomodoro sessions and streaks
+- Displays the top 10 users
+- Shows users their own rank
+- Updates daily via a cron job
+
+The scoring system rewards both consistency (streaks) and total work time (pomodoro sessions), creating a balanced competition that encourages regular use of the app.
+
+By following this step-by-step guide, you've learned how to:
+1. Modify existing models
+2. Create and register new routes
+3. Implement service functions
+4. Build React components for displaying data
+5. Set up scheduled tasks with cron
+6. Test and troubleshoot a full-stack feature
+
+These skills will be valuable for implementing other features in your application or in future projects.
+
+
+## Till Step 6 Done

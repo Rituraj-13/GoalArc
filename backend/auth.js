@@ -12,6 +12,10 @@ import AuthMiddleware from './Middlewares/AuthMiddleware.js';
 import pomodoroRouter from './routes/pomodoro.js';
 import profilePictureRoutes from './routes/profilePictureRoutes.js';
 import { generatePresignedUrl } from './config/s3Config.js';
+import Streak from "./models/Streak.js";
+import leaderBoard from "./models/leaderBoard.js";
+import leaderBoardRouter from './routes/leaderBoardRanking.js';
+import { updateAllLeaderboardEntries } from "./services/leaderboardService.js";
 
 dotenv.config();
 
@@ -22,6 +26,7 @@ app.use(streakCheck);
 app.use('/todos', router);
 app.use('/pomodoro', pomodoroRouter);
 app.use('/user', profilePictureRoutes);
+app.use('/api', leaderBoardRouter);
 const port = 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 const DB_URL = process.env.MONGO_URL
@@ -200,6 +205,29 @@ app.post('/verify-otp', async (req, res) => {
         });
         await newUser.save();
 
+        // Create a new Streak for the new user
+        const newStreak = new Streak({
+            user: newUser._id,
+            currentStreak: 0,
+            highestStreak: 0
+        });
+
+        await newStreak.save();
+
+        // Create a leaderboard entry for the new user
+        const leaderBoardEntry = new leaderBoard({
+            user: newUser._id,
+            email: newUser.username,
+            username: `${pendingUser.firstName} ${pendingUser.lastName}`.trim(),
+            profilePicture: newUser.profilePicture || null,
+            currentStreak: 0,
+            highestStreak: 0,
+            totalDuration: 0,
+            score: 0
+        })
+
+        await leaderBoardEntry.save();
+
         pendingRegistrations.delete(email);
 
         res.json({
@@ -271,6 +299,15 @@ cron.schedule('0 0 * * *', async () => {
         console.error('Daily streak check failed:', error);
     }
 });
+
+cron.schedule('0 0 * * *', async () => {
+    console.log('Running the leaderboard update service');
+    try {
+        await updateAllLeaderboardEntries();
+    } catch (error) {
+        console.error("Error updating leaderboard", error);
+    }
+})
 
 // Get user profile
 app.get('/user/profile', AuthMiddleware, async (req, res) => {

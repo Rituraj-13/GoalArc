@@ -14,7 +14,8 @@ import {
   LogOut,
   Flame,
   Timer,
-  Menu
+  Menu,
+  Medal
 } from "lucide-react";
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -87,6 +88,7 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
               { path: '/todos', icon: CheckSquare, label: 'My Tasks' },
               { path: '/pomodoro', icon: Timer, label: 'Pomodoro' },
               { path: '/streaks', icon: Flame, label: 'Streaks' },
+              { path: '/leaderboard', icon: Medal, label: 'LeaderBoard' },
             ].map((item) => (
               <Button
                 key={item.path}

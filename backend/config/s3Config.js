@@ -17,7 +17,7 @@ export const generatePresignedUrl = async (key) => {
     });
 
     // URL expires in 1 hour
-    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    return await getSignedUrl(s3Client, command);
 };
 
 export default s3Client;

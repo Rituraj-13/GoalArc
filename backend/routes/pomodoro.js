@@ -4,6 +4,7 @@ import PomodoroSession from '../models/PomodoroSession.js';
 import Todo from '../models/Todo.js';
 import AuthMiddleware from '../Middlewares/AuthMiddleware.js';
 import mongoose from 'mongoose';
+import { updateLeaderboardEntry } from '../services/leaderboardService.js';
 
 const router = express.Router();
 
@@ -64,15 +65,28 @@ router.post('/sessions', async (req, res) => {
     try {
         const { todoId, type, duration, completed, endTime } = req.body;
 
+        // Ensure duration is a number and convert to seconds if needed
+        let durationInSeconds = duration;
+        if (typeof duration === 'string') {
+            durationInSeconds = parseInt(duration, 10);
+        }
+
+        // If duration is in minutes, convert to seconds
+        if (durationInSeconds < 100) { // Assume it's minutes if less than 100
+            durationInSeconds = durationInSeconds * 60;
+        }
+
+        console.log(`Creating new Pomodoro session: type=${type}, duration=${durationInSeconds} seconds`);
+
         const session = await PomodoroSession.create({
             user: req.userId,
             todo: todoId,
             type,
-            duration,
+            duration: durationInSeconds,
             completed: completed || false,
             startTime: new Date(),
             endTime: endTime || null
-        }); ``
+        });
 
         if (todoId) {
             // Update todo with the new session
@@ -84,6 +98,7 @@ router.post('/sessions', async (req, res) => {
 
         res.json(session);
     } catch (error) {
+        console.error('Error creating session:', error);
         res.status(500).json({ error: 'Failed to create session' });
     }
 });
@@ -91,17 +106,43 @@ router.post('/sessions', async (req, res) => {
 // Complete a Pomodoro session
 router.put('/sessions/:id/complete', async (req, res) => {
     try {
-        const session = await PomodoroSession.findByIdAndUpdate(
-            req.params.id,
-            {
-                completed: true,
-                endTime: new Date()
-            },
-            { new: true }
-        );
+        const session = await PomodoroSession.findById(req.params.id);
+
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        // Calculate actual duration in seconds
+        const endTime = new Date();
+        const startTime = new Date(session.startTime);
+        const actualDuration = Math.floor((endTime - startTime) / 1000);
+
+        console.log(`Completing Pomodoro session: ${session._id}`);
+        console.log(`Start time: ${startTime}`);
+        console.log(`End time: ${endTime}`);
+        console.log(`Calculated duration: ${actualDuration} seconds`);
+        console.log(`Original duration: ${session.duration} seconds`);
+
+        // Update session with completion details
+        session.completed = true;
+        session.endTime = endTime;
+
+        // Only update duration if it's a reasonable value (to prevent errors)
+        if (actualDuration > 0 && actualDuration < 7200) { // Max 2 hours
+            session.duration = actualDuration;
+        } else {
+            console.log(`Using original duration (${session.duration}) as calculated value (${actualDuration}) seems invalid`);
+        }
+
+        await session.save();
+        console.log(`Session saved with duration: ${session.duration} seconds`);
+
+        // Update the leaderboard entry
+        await updateLeaderboardEntry(req.userId);
 
         res.json(session);
     } catch (error) {
+        console.error('Error completing session:', error);
         res.status(500).json({ error: 'Failed to complete session' });
     }
 });

@@ -2,6 +2,8 @@ import express from "express";
 import Todo from "../models/Todo.js";
 import Streak from "../models/Streak.js";
 import AuthMiddleware from "../Middlewares/AuthMiddleware.js";
+import { updateLeaderboardEntry } from "../services/leaderboardService.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
@@ -58,7 +60,10 @@ router.get('/check-streak', async (req, res) => {
             }
         }
 
-        res.json(streak);
+        // Update leaderboard on streak update
+        await updateLeaderboardEntry(req.userId);
+
+        res.json({ message: "Streak Updated Successfully" });
     } catch (error) {
         console.error('Streak check error:', error);
         res.status(500).json({ message: 'Failed to check streak' });
@@ -100,30 +105,6 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: 'Error creating todo' });
     }
 });
-
-// Update todo
-// router.put('/:id', async (req, res) => {
-//     try {
-//         const { title, description, completed, dueDate } = req.body;
-//         const todoId = req.params.id;
-
-//         const todo = await Todo.findOne({ _id: todoId, user: req.userId });
-
-//         if (!todo) {
-//             return res.status(404).json({ error: 'Todo not found' });
-//         }
-
-//         if (title) todo.title = title;
-//         if (description !== undefined) todo.description = description;
-//         if (dueDate !== undefined) todo.dueDate = dueDate;
-//         if (completed !== undefined) todo.completed = completed;
-
-//         const updatedTodo = await todo.save();
-//         res.json(updatedTodo);
-//     } catch (error) {
-//         res.status(500).json({ error: 'Error updating todo' });
-//     }
-// });
 
 // Update todo
 router.put('/:id', async (req, res) => {
@@ -172,6 +153,9 @@ router.put('/:id', async (req, res) => {
             streak.lastCompletionDate = now;
             streak.highestStreak = Math.max(streak.currentStreak, streak.highestStreak);
             await streak.save();
+
+            // Update leaderboard entry after streak update
+            await updateLeaderboardEntry(req.userId);
         }
 
         // Update todo fields
@@ -225,8 +209,6 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Add to backend/routes/todo.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
 router.post('/generate-description', async (req, res) => {
     try {
         const { title } = req.body;
