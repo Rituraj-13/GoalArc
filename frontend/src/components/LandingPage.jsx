@@ -1,6 +1,6 @@
 import React, { useRef } from "react"
 import { useNavigate } from "react-router-dom";
-import bannerImage from '../assets/bannerImage.png'
+import landingImg from '../assets/landingImg.png'
 import { Rocket } from "lucide-react";
 
 import {
@@ -46,6 +46,18 @@ const LandingPage = () => {
 
     return (
         <div className="font-sans text-gray-900 leading-normal">
+            <style jsx global>{`
+                /* Hide scrollbar for Chrome, Safari and Opera */
+                ::-webkit-scrollbar {
+                    display: none;
+                }
+
+                /* Hide scrollbar for IE, Edge and Firefox */
+                * {
+                    -ms-overflow-style: none;  /* IE and Edge */
+                    scrollbar-width: none;  /* Firefox */
+                }
+            `}</style>
             <main>
                 <section className="relative bg-gradient-to-br from-blue-600 to-blue-900 text-white py-32 px-4 md:px-8 overflow-hidden ">
                     <div className="absolute inset-0 bg-blue-900 opacity-20 z-0 "></div>
@@ -79,23 +91,13 @@ const LandingPage = () => {
                                 <Button onClick={scrollToFeatures}>Learn More</Button>
                             </div>
                         </div>
-                        <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                        <div className="w-full h-auto relative">
                             <img
-                                src={bannerImage}
+                                src={landingImg}
                                 alt="GoalArc Demo Video"
-                                className="absolute inset-0 w-full h-full object-fill"
+                                className="w-full h-full object-cover"
+                                loading="lazy"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <button
-                                    className="relative bg-white bg-opacity-75 rounded-full p-4 text-blue-600 hover:bg-opacity-100 transition-all duration-300 border hover:bg-blue-100 hover:border-blue-200 group"
-                                    aria-label="Play demo video"
-                                >
-                                    <span className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap">
-                                        Video will be uploaded Soon !
-                                    </span>
-                                    <PlayCircle size={48} />
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-blue-900 to-transparent"></div>
