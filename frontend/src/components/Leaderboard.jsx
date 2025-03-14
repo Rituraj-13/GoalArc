@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "react-hot-toast"
-import { Trophy, Medal, Clock, Star, Info, Crown, Award, Users, X } from "lucide-react"
+import { Trophy, Medal, Clock, Star, Info, Crown, Award, Users, X, Flame } from "lucide-react"
 import Sidebar from "./Sidebar"
 import { useTheme } from "./ThemeProvider"
 import { cn } from "@/lib/utils"
@@ -69,8 +69,10 @@ const Leaderboard = ({ setIsAuthenticated }) => {
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
                 <div
                     className={cn(
-                        "rounded-2xl p-6 max-w-md w-full shadow-2xl border transform transition-all",
-                        isDark ? "bg-gray-800/95 text-gray-100 border-gray-700" : "bg-white/95 text-gray-800 border-gray-200",
+                        "rounded-2xl p-6 max-w-md w-full shadow-2xl border transform transition-all max-h-[90vh] overflow-y-auto scrollbar-thin",
+                        isDark
+                            ? "bg-gray-800/95 text-gray-100 border-gray-700 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500 scrollbar-track-gray-800/50"
+                            : "bg-white/95 text-gray-800 border-gray-200 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-track-gray-100/50",
                     )}
                 >
                     <div className="flex justify-between items-center mb-6">
@@ -160,7 +162,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                         >
                             <div className="flex justify-between items-center mb-2">
                                 <div className="flex items-center gap-2">
-                                    <Medal className={cn("w-5 h-5", isDark ? "text-green-400" : "text-green-600")} />
+                                    <Flame className={cn("w-5 h-5", isDark ? "text-green-400" : "text-green-600")} />
                                     <span className="font-medium">Current Streak</span>
                                 </div>
                                 <span className="font-semibold">{user.currentStreak} days</span>
@@ -250,7 +252,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
         <div className="flex h-screen overflow-hidden">
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
 
-            <div className={cn("flex-1 overflow-auto", isDark ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-800")}>
+            <div className={cn(
+                "flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent",
+                isDark
+                    ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
+                    : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400",
+                isDark ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-800"
+            )}>
                 <div className="max-w-7xl mx-auto px-4 py-8 mt-8 md:mt-0 md:px-6 md:py-10">
                     {/* Header - Left aligned */}
                     <div className="mb-8">
@@ -521,7 +529,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
 
                                         <div className={cn("p-2 sm:p-4 rounded-xl", isDark ? "bg-green-900/30" : "bg-green-100/80")}>
                                             <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                                                <Medal className={cn("w-3 h-3 sm:w-4 sm:h-4", isDark ? "text-green-400" : "text-green-600")} />
+                                                <Flame className={cn("w-3 h-3 sm:w-4 sm:h-4", isDark ? "text-green-400" : "text-green-600")} />
                                                 <span className={cn("text-xs sm:text-sm font-medium", isDark ? "text-green-300" : "text-green-700")}>
                                                     Streak
                                                 </span>
@@ -585,7 +593,12 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                 isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
                             )}
                         >
-                            <div className="overflow-x-auto">
+                            <div className={cn(
+                                "overflow-x-auto scrollbar-thin scrollbar-track-transparent",
+                                isDark
+                                    ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
+                                    : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
+                            )}>
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className={isDark ? "bg-gray-700/50" : "bg-gray-50"}>
                                         <tr>
@@ -610,11 +623,11 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                             <th
                                                 scope="col"
                                                 className={cn(
-                                                    "px-4 py-3.5 text-right text-sm font-semibold",
+                                                    "px-4 py-3.5 text-right text-sm font-semibold whitespace-nowrap",
                                                     isDark ? "text-gray-300" : "text-gray-600",
                                                 )}
                                             >
-                                                Streak
+                                                <span className="hidden sm:inline">Current </span>Streak
                                             </th>
                                             <th
                                                 scope="col"
@@ -712,10 +725,10 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                 </td>
                                                 <td className="whitespace-nowrap px-4 py-4 text-sm text-right">
                                                     <div className="flex items-center justify-end">
-                                                        <Medal className={cn("w-4 h-4 mr-1", isDark ? "text-green-400" : "text-green-600")} />
+                                                        <Flame className={cn("w-4 h-4 mr-1", isDark ? "text-green-400" : "text-green-600")} />
                                                         <span className="font-medium">
                                                             {entry.currentStreak}
-                                                            <span className={cn("ml-1 font-normal hidden xs:inline", isDark ? "text-gray-400" : "text-gray-500")}>
+                                                            <span className={cn("ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
                                                                 days
                                                             </span>
                                                         </span>
