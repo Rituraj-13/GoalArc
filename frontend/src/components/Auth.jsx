@@ -357,7 +357,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                         name="firstName"
                                                         type="text"
                                                         required
-                                                        className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                                         value={firstName}
                                                         onChange={(e) => setFirstName(e.target.value)}
                                                     />
@@ -373,7 +373,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                         name="lastName"
                                                         type="text"
                                                         required
-                                                        className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                                         value={lastName}
                                                         onChange={(e) => setLastName(e.target.value)}
                                                     />
@@ -393,7 +393,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                 type="email"
                                                 autoComplete="email"
                                                 required
-                                                className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                             />
@@ -410,7 +410,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                 name="password"
                                                 type={showPassword ? "text" : "password"}
                                                 required
-                                                className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                             />
@@ -439,7 +439,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                     name="confirmPassword"
                                                     type="password"
                                                     required
-                                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${!passwordsMatch ? "border-red-500" : "border-gray-300"
+                                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${!passwordsMatch ? "border-red-500" : "border-gray-300"
                                                         }`}
                                                     value={confirmPassword}
                                                     onChange={(e) => setConfirmPassword(e.target.value)}
