@@ -177,16 +177,16 @@ const LandingPage = () => {
                 </section>
             </main>
 
-            <footer className="bg-blue-900 text-white py-8 px-8 text-center">
-                <p className="mb-4">© 2024 GoalArc. All rights reserved.</p>
-                <div>
+            <footer className="bg-blue-900 text-white py-2 px-8 text-center">
+                <p className="mb-4">© 2025 GoalArc. All rights reserved.</p>
+                {/* <div>
                     <a href="#" className="text-blue-200 hover:underline mr-6">
                         Terms of Service
                     </a>
                     <a href="#" className="text-blue-200 hover:underline">
                         Privacy Policy
                     </a>
-                </div>
+                </div> */}
             </footer>
         </div>
     )
