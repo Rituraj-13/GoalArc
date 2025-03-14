@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "react-hot-toast"
-import { Trophy, Medal, Clock, Star, Info, Crown, Award, Users, X, Flame } from "lucide-react"
+import { Trophy, Medal, Clock, Star, Info, Crown, Award, Users, X, Flame, TrendingUp } from "lucide-react"
 import Sidebar from "./Sidebar"
 import { useTheme } from "./ThemeProvider"
 import { cn } from "@/lib/utils"
@@ -69,10 +69,10 @@ const Leaderboard = ({ setIsAuthenticated }) => {
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
                 <div
                     className={cn(
-                        "rounded-2xl p-6 max-w-md w-full shadow-2xl border transform transition-all max-h-[90vh] overflow-y-auto scrollbar-thin",
+                        "rounded-2xl p-6 max-w-md w-full shadow-2xl border border-border transform transition-all max-h-[90vh] overflow-y-auto scrollbar-thin bg-card text-foreground",
                         isDark
-                            ? "bg-gray-800/95 text-gray-100 border-gray-700 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500 scrollbar-track-gray-800/50"
-                            : "bg-white/95 text-gray-800 border-gray-200 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-track-gray-100/50",
+                            ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500 scrollbar-track-gray-800/50"
+                            : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 scrollbar-track-gray-100/50",
                     )}
                 >
                     <div className="flex justify-between items-center mb-6">
@@ -253,11 +253,10 @@ const Leaderboard = ({ setIsAuthenticated }) => {
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
 
             <div className={cn(
-                "flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent",
+                "flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent bg-background text-foreground",
                 isDark
                     ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
                     : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400",
-                isDark ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-800"
             )}>
                 <div className="max-w-7xl mx-auto px-4 py-8 mt-8 md:mt-0 md:px-6 md:py-10">
                     {/* Header - Left aligned */}
@@ -276,13 +275,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                         {topUsers.length > 0 && (
                             <div
                                 className={cn(
-                                    "p-4 sm:p-6 rounded-xl border",
-                                    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
+                                    "p-4 sm:p-6 rounded-xl border border-border bg-card",
+                                    isDark ? "border-gray-700" : "border-gray-200",
                                 )}
                             >
                                 <h2 className={cn("text-xl font-bold mb-4 sm:mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
                                     <div className="flex items-center gap-2">
-                                        <Trophy className={cn("w-5 h-5", isDark ? "text-yellow-400" : "text-yellow-500")} />
+                                        <TrendingUp className={cn("w-5 h-5", isDark ? "text-yellow-400" : "text-yellow-500")} />
                                         <span>Top Performers</span>
                                     </div>
                                 </h2>
@@ -466,8 +465,8 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                         {userRank && (
                             <div
                                 className={cn(
-                                    "p-4 sm:p-6 rounded-xl border h-full",
-                                    isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
+                                    "p-4 sm:p-6 rounded-xl border border-border bg-card h-full",
+                                    isDark ? "border-gray-700" : "border-gray-200",
                                 )}
                             >
                                 <h2 className={cn("text-xl font-bold mb-4 sm:mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
@@ -580,7 +579,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                 className={cn("text-lg sm:text-xl font-bold flex items-center gap-2", isDark ? "text-gray-200" : "text-gray-800")}
                             >
                                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span>Full Leaderboard</span>
+                                <span>All Users</span>
                             </h2>
                             <div className={cn("text-xs sm:text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
                                 {leaderboardData.length} participants
@@ -589,8 +588,8 @@ const Leaderboard = ({ setIsAuthenticated }) => {
 
                         <div
                             className={cn(
-                                "rounded-xl overflow-hidden border shadow-sm",
-                                isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
+                                "rounded-xl overflow-hidden border shadow-sm border-border bg-card",
+                                isDark ? "border-gray-700" : "border-gray-200",
                             )}
                         >
                             <div className={cn(
@@ -599,60 +598,42 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                     ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
                                     : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
                             )}>
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className={isDark ? "bg-gray-700/50" : "bg-gray-50"}>
+                                <table className="min-w-full divide-y divide-border">
+                                    <thead className="bg-muted">
                                         <tr>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-left text-sm font-semibold",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-left text-sm font-semibold text-muted-foreground"
                                             >
                                                 Rank
                                             </th>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-left text-sm font-semibold",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-left text-sm font-semibold text-muted-foreground"
                                             >
                                                 User
                                             </th>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-right text-sm font-semibold whitespace-nowrap",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-right text-sm font-semibold whitespace-nowrap text-muted-foreground"
                                             >
                                                 <span className="hidden sm:inline">Current </span>Streak
                                             </th>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-right text-sm font-semibold hidden md:table-cell",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-right text-sm font-semibold hidden md:table-cell text-muted-foreground"
                                             >
                                                 Total Time
                                             </th>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-right text-sm font-semibold",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-right text-sm font-semibold text-muted-foreground"
                                             >
                                                 Score
                                             </th>
                                             <th
                                                 scope="col"
-                                                className={cn(
-                                                    "px-4 py-3.5 text-center text-sm font-semibold",
-                                                    isDark ? "text-gray-300" : "text-gray-600",
-                                                )}
+                                                className="px-4 py-3.5 text-center text-sm font-semibold text-muted-foreground"
                                             >
                                                 Details
                                             </th>
