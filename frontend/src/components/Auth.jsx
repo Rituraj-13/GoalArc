@@ -457,7 +457,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
                                                     <div className="ml-3">
                                                         <p className="text-sm text-blue-800 font-medium">Important Password Information</p>
                                                         <p className="text-xs text-blue-700 mt-1">
-                                                            For security, we encrypt passwords, so we <span className="font-semibold">cannot recover or reset</span>forgotten ones. Please store it securely.
+                                                            For security, we encrypt passwords, so we <span className="font-semibold">cannot recover or reset </span>forgotten ones. Please store it securely.
                                                         </p>
                                                     </div>
                                                 </div>
