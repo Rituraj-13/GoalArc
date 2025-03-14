@@ -212,9 +212,9 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                 <span className="font-bold">Total Score</span>
                                 <span className="font-bold text-xl">{user.score} points</span>
                             </div>
-                            <div className={cn("text-sm mt-2", isDark ? "text-gray-400" : "text-gray-500")}>
+                            {/* <div className={cn("text-sm mt-2", isDark ? "text-gray-400" : "text-gray-500")}>
                                 ({durationScore} + {currentStreakScore} + {highestStreakScore})
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>
@@ -251,13 +251,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
 
             <div className={cn("flex-1 overflow-auto", isDark ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-800")}>
-                <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-10">
+                <div className="max-w-7xl mx-auto px-4 py-8 mt-8 md:mt-0 md:px-6 md:py-10">
                     {/* Header - Left aligned */}
                     <div className="mb-8">
                         <div className="flex items-center gap-3">
                             <Trophy className={cn("w-8 h-8", isDark ? "text-yellow-400" : "text-yellow-500")} />
                             <h1 className={cn("text-2xl md:text-3xl font-bold", isDark ? "text-white" : "text-gray-900")}>
-                                Productivity Leaderboard
+                                Leaderboard
                             </h1>
                         </div>
                     </div>
@@ -268,11 +268,11 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                         {topUsers.length > 0 && (
                             <div
                                 className={cn(
-                                    "p-6 rounded-xl border",
+                                    "p-4 sm:p-6 rounded-xl border",
                                     isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
                                 )}
                             >
-                                <h2 className={cn("text-xl font-bold mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
+                                <h2 className={cn("text-xl font-bold mb-4 sm:mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
                                     <div className="flex items-center gap-2">
                                         <Trophy className={cn("w-5 h-5", isDark ? "text-yellow-400" : "text-yellow-500")} />
                                         <span>Top Performers</span>
@@ -281,14 +281,14 @@ const Leaderboard = ({ setIsAuthenticated }) => {
 
                                 <div className="flex flex-col items-center">
                                     {/* Podium - Single row on mobile, maintains order */}
-                                    <div className="flex flex-row items-end justify-center gap-4 md:gap-6 mb-6 w-full overflow-x-auto pb-2">
+                                    <div className="flex flex-row items-end justify-center gap-2 sm:gap-4 md:gap-6 mb-6 w-full">
                                         {/* Second Place */}
                                         {topUsers.length > 1 && (
                                             <div className="flex-shrink-0">
                                                 <div className="flex flex-col items-center">
                                                     <div
                                                         className={cn(
-                                                            "w-16 h-16 rounded-full overflow-hidden border-4 mb-2",
+                                                            "w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 mb-2",
                                                             isDark ? "border-gray-300" : "border-gray-400",
                                                         )}
                                                     >
@@ -313,20 +313,23 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                     </div>
                                                     <div
                                                         className={cn(
-                                                            "w-8 h-8 rounded-full flex items-center justify-center mb-2",
+                                                            "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mb-2",
                                                             isDark ? "bg-gray-300 text-gray-800" : "bg-gray-400 text-white",
                                                         )}
                                                     >
-                                                        <Award className="w-5 h-5" />
+                                                        <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                                                     </div>
                                                     <div
                                                         className={cn(
-                                                            "w-24 h-28 rounded-t-lg flex flex-col items-center justify-end p-2",
+                                                            "w-20 sm:w-24 h-24 sm:h-28 rounded-t-lg flex flex-col items-center justify-end p-2 relative",
                                                             isDark ? "bg-gray-700" : "bg-gray-100",
                                                         )}
                                                     >
-                                                        <p className="font-semibold text-center line-clamp-1">{topUsers[1].username}</p>
-                                                        <p className={cn("text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
+                                                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gray-300 text-gray-800 rounded-full px-2 py-0.5 text-xs font-bold">
+                                                            2nd
+                                                        </div>
+                                                        <p className="font-semibold text-center text-xs sm:text-sm line-clamp-1">{topUsers[1].username}</p>
+                                                        <p className={cn("text-xs sm:text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
                                                             {topUsers[1].score} pts
                                                         </p>
                                                     </div>
@@ -339,7 +342,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                             <div className="flex flex-col items-center">
                                                 <div
                                                     className={cn(
-                                                        "w-20 h-20 rounded-full overflow-hidden border-4 mb-2",
+                                                        "w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 mb-2",
                                                         isDark ? "border-yellow-400" : "border-yellow-500",
                                                     )}
                                                 >
@@ -364,22 +367,25 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                 </div>
                                                 <div
                                                     className={cn(
-                                                        "w-10 h-10 rounded-full flex items-center justify-center mb-2",
+                                                        "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mb-2",
                                                         isDark ? "bg-yellow-400 text-yellow-900" : "bg-yellow-500 text-yellow-900",
                                                     )}
                                                 >
-                                                    <Crown className="w-6 h-6" />
+                                                    <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
                                                 </div>
                                                 <div
                                                     className={cn(
-                                                        "w-28 h-36 rounded-t-lg flex flex-col items-center justify-end p-3",
+                                                        "w-24 sm:w-28 h-32 sm:h-36 rounded-t-lg flex flex-col items-center justify-end p-2 sm:p-3 relative",
                                                         isDark
                                                             ? "bg-gradient-to-b from-yellow-900/30 to-yellow-900/10"
                                                             : "bg-gradient-to-b from-yellow-100 to-yellow-50",
                                                     )}
                                                 >
-                                                    <p className="font-bold text-center text-lg line-clamp-1">{topUsers[0].username}</p>
-                                                    <p className={cn("font-semibold", isDark ? "text-yellow-400" : "text-yellow-600")}>
+                                                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 text-xs font-bold">
+                                                        1st
+                                                    </div>
+                                                    <p className="font-bold text-center text-sm sm:text-lg line-clamp-1">{topUsers[0].username}</p>
+                                                    <p className={cn("font-semibold text-xs sm:text-base", isDark ? "text-yellow-400" : "text-yellow-600")}>
                                                         {topUsers[0].score} pts
                                                     </p>
                                                 </div>
@@ -392,7 +398,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                 <div className="flex flex-col items-center">
                                                     <div
                                                         className={cn(
-                                                            "w-16 h-16 rounded-full overflow-hidden border-4 mb-2",
+                                                            "w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 mb-2",
                                                             isDark ? "border-amber-500" : "border-amber-600",
                                                         )}
                                                     >
@@ -417,20 +423,23 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                     </div>
                                                     <div
                                                         className={cn(
-                                                            "w-8 h-8 rounded-full flex items-center justify-center mb-2",
+                                                            "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mb-2",
                                                             isDark ? "bg-amber-500 text-amber-900" : "bg-amber-600 text-white",
                                                         )}
                                                     >
-                                                        <Medal className="w-5 h-5" />
+                                                        <Medal className="w-4 h-4 sm:w-5 sm:h-5" />
                                                     </div>
                                                     <div
                                                         className={cn(
-                                                            "w-24 h-28 rounded-t-lg flex flex-col items-center justify-end p-2",
+                                                            "w-20 sm:w-24 h-24 sm:h-28 rounded-t-lg flex flex-col items-center justify-end p-2 relative",
                                                             isDark ? "bg-gray-700" : "bg-gray-100",
                                                         )}
                                                     >
-                                                        <p className="font-semibold text-center line-clamp-1">{topUsers[2].username}</p>
-                                                        <p className={cn("text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
+                                                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-500 text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                                                            3rd
+                                                        </div>
+                                                        <p className="font-semibold text-center text-xs sm:text-sm line-clamp-1">{topUsers[2].username}</p>
+                                                        <p className={cn("text-xs sm:text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
                                                             {topUsers[2].score} pts
                                                         </p>
                                                     </div>
@@ -449,32 +458,32 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                         {userRank && (
                             <div
                                 className={cn(
-                                    "p-6 rounded-xl border h-full",
+                                    "p-4 sm:p-6 rounded-xl border h-full",
                                     isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200",
                                 )}
                             >
-                                <h2 className={cn("text-xl font-bold mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
+                                <h2 className={cn("text-xl font-bold mb-4 sm:mb-6", isDark ? "text-gray-200" : "text-gray-800")}>
                                     <div className="flex items-center gap-2">
                                         <Star className={cn("w-5 h-5", isDark ? "text-blue-400" : "text-blue-500")} />
                                         <span>Your Performance</span>
                                     </div>
                                 </h2>
 
-                                <div className="flex flex-col gap-6">
-                                    <div className="flex items-center gap-5">
+                                <div className="flex flex-col gap-4 sm:gap-6">
+                                    <div className="flex items-center gap-3 sm:gap-5">
                                         <div
                                             className={cn(
-                                                "relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg",
+                                                "relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg",
                                                 isDark
                                                     ? "bg-gradient-to-br from-blue-600 to-purple-600"
                                                     : "bg-gradient-to-br from-blue-500 to-purple-500",
                                             )}
                                         >
-                                            <span className="text-2xl">#{userRank.rank}</span>
+                                            <span className="text-xl sm:text-2xl">#{userRank.rank}</span>
                                             <div className="absolute -top-2 -right-2">
                                                 <div
                                                     className={cn(
-                                                        "w-6 h-6 rounded-full flex items-center justify-center",
+                                                        "w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center",
                                                         isDark ? "bg-gray-800" : "bg-white",
                                                         "border-2",
                                                         isDark ? "border-gray-700" : "border-gray-100",
@@ -485,56 +494,56 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className={cn("text-xl font-bold mb-1", isDark ? "text-white" : "text-gray-900")}>
+                                            <h3 className={cn("text-lg sm:text-xl font-bold mb-0 sm:mb-1", isDark ? "text-white" : "text-gray-900")}>
                                                 {userRank.userDetails.username}
                                             </h3>
-                                            <p className={cn("text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
+                                            <p className={cn("text-xs sm:text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
                                                 Total Score: {userRank.userDetails.score} points
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                        <div className={cn("p-4 rounded-xl", isDark ? "bg-blue-900/30" : "bg-blue-100/80")}>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Clock className={cn("w-4 h-4", isDark ? "text-blue-400" : "text-blue-600")} />
-                                                <span className={cn("text-sm font-medium", isDark ? "text-blue-300" : "text-blue-700")}>
+                                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                                        <div className={cn("p-2 sm:p-4 rounded-xl", isDark ? "bg-blue-900/30" : "bg-blue-100/80")}>
+                                            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                                                <Clock className={cn("w-3 h-3 sm:w-4 sm:h-4", isDark ? "text-blue-400" : "text-blue-600")} />
+                                                <span className={cn("text-xs sm:text-sm font-medium", isDark ? "text-blue-300" : "text-blue-700")}>
                                                     Total Time
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-lg">
+                                            <p className="font-semibold text-sm sm:text-lg">
                                                 {userRank.userDetails.totalDuration}
-                                                <span className={cn("text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
+                                                <span className={cn("text-xs sm:text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
                                                     min
                                                 </span>
                                             </p>
                                         </div>
 
-                                        <div className={cn("p-4 rounded-xl", isDark ? "bg-green-900/30" : "bg-green-100/80")}>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Medal className={cn("w-4 h-4", isDark ? "text-green-400" : "text-green-600")} />
-                                                <span className={cn("text-sm font-medium", isDark ? "text-green-300" : "text-green-700")}>
-                                                    Current Streak
+                                        <div className={cn("p-2 sm:p-4 rounded-xl", isDark ? "bg-green-900/30" : "bg-green-100/80")}>
+                                            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                                                <Medal className={cn("w-3 h-3 sm:w-4 sm:h-4", isDark ? "text-green-400" : "text-green-600")} />
+                                                <span className={cn("text-xs sm:text-sm font-medium", isDark ? "text-green-300" : "text-green-700")}>
+                                                    Streak
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-lg">
+                                            <p className="font-semibold text-sm sm:text-lg">
                                                 {userRank.userDetails.currentStreak}
-                                                <span className={cn("text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
+                                                <span className={cn("text-xs sm:text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
                                                     days
                                                 </span>
                                             </p>
                                         </div>
 
-                                        <div className={cn("p-4 rounded-xl", isDark ? "bg-purple-900/30" : "bg-purple-100/80")}>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Trophy className={cn("w-4 h-4", isDark ? "text-purple-400" : "text-purple-600")} />
-                                                <span className={cn("text-sm font-medium", isDark ? "text-purple-300" : "text-purple-700")}>
-                                                    Highest Streak
+                                        <div className={cn("p-2 sm:p-4 rounded-xl", isDark ? "bg-purple-900/30" : "bg-purple-100/80")}>
+                                            <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                                                <Trophy className={cn("w-3 h-3 sm:w-4 sm:h-4", isDark ? "text-purple-400" : "text-purple-600")} />
+                                                <span className={cn("text-xs sm:text-sm font-medium", isDark ? "text-purple-300" : "text-purple-700")}>
+                                                    Best Streak
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-lg">
+                                            <p className="font-semibold text-sm sm:text-lg">
                                                 {userRank.userDetails.highestStreak}
-                                                <span className={cn("text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
+                                                <span className={cn("text-xs sm:text-sm ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
                                                     days
                                                 </span>
                                             </p>
@@ -544,11 +553,11 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                     <button
                                         onClick={() => showBreakdown(userRank.userDetails)}
                                         className={cn(
-                                            "px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-2 mt-2 w-full sm:w-auto",
+                                            "px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-2 mt-2 w-full sm:w-auto",
                                             isDark ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white",
                                         )}
                                     >
-                                        <Info className="w-4 h-4" />
+                                        <Info className="w-3 h-3 sm:w-4 sm:h-4" />
                                         View Score Details
                                     </button>
                                 </div>
@@ -558,14 +567,14 @@ const Leaderboard = ({ setIsAuthenticated }) => {
 
                     {/* Leaderboard Table */}
                     <div className="max-w-full">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
                             <h2
-                                className={cn("text-xl font-bold flex items-center gap-2", isDark ? "text-gray-200" : "text-gray-800")}
+                                className={cn("text-lg sm:text-xl font-bold flex items-center gap-2", isDark ? "text-gray-200" : "text-gray-800")}
                             >
-                                <Users className="w-5 h-5" />
+                                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                                 <span>Full Leaderboard</span>
                             </h2>
-                            <div className={cn("text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
+                            <div className={cn("text-xs sm:text-sm", isDark ? "text-gray-400" : "text-gray-600")}>
                                 {leaderboardData.length} participants
                             </div>
                         </div>
@@ -610,7 +619,7 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                             <th
                                                 scope="col"
                                                 className={cn(
-                                                    "px-4 py-3.5 text-right text-sm font-semibold hidden sm:table-cell",
+                                                    "px-4 py-3.5 text-right text-sm font-semibold hidden md:table-cell",
                                                     isDark ? "text-gray-300" : "text-gray-600",
                                                 )}
                                             >
@@ -706,13 +715,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                         <Medal className={cn("w-4 h-4 mr-1", isDark ? "text-green-400" : "text-green-600")} />
                                                         <span className="font-medium">
                                                             {entry.currentStreak}
-                                                            <span className={cn("ml-1 font-normal", isDark ? "text-gray-400" : "text-gray-500")}>
+                                                            <span className={cn("ml-1 font-normal hidden xs:inline", isDark ? "text-gray-400" : "text-gray-500")}>
                                                                 days
                                                             </span>
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="whitespace-nowrap px-4 py-4 text-sm text-right hidden sm:table-cell">
+                                                <td className="whitespace-nowrap px-4 py-4 text-sm text-right hidden md:table-cell">
                                                     <div className="flex items-center justify-end">
                                                         <Clock className={cn("w-4 h-4 mr-1", isDark ? "text-blue-400" : "text-blue-600")} />
                                                         <span className="font-medium">
@@ -727,20 +736,19 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                     <span className={cn("font-semibold", isDark ? "text-gray-100" : "text-gray-900")}>
                                                         {entry.score}
                                                     </span>
-                                                    <span className={cn("ml-1", isDark ? "text-gray-400" : "text-gray-500")}>pts</span>
                                                 </td>
                                                 <td className="whitespace-nowrap px-4 py-4 text-sm text-center">
                                                     <button
                                                         onClick={() => showBreakdown(entry)}
                                                         className={cn(
-                                                            "inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg transition-colors",
+                                                            "inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg transition-colors",
                                                             isDark
                                                                 ? "bg-gray-700 hover:bg-gray-600 text-gray-300"
                                                                 : "bg-gray-100 hover:bg-gray-200 text-gray-700",
                                                         )}
                                                     >
                                                         <Info className="w-3.5 h-3.5 mr-1" />
-                                                        Details
+                                                        <span className="hidden sm:inline">Details</span>
                                                     </button>
                                                 </td>
                                             </tr>
