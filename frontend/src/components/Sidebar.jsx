@@ -18,7 +18,7 @@ import {
   Medal
 } from "lucide-react";
 import { useTheme } from './ThemeProvider';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -54,14 +54,20 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
         {/* Logo and Collapse Section */}
         <div className="px-3 py-2">
           <div className="flex items-center justify-between mb-6">
-            <h2 className={cn(
-              "font-bold transition-all duration-300",
-              isDark ? "text-purple-300" : "text-blue-600",
-              isCollapsed ? "text-sm ml-1" : "text-xl px-4"
-            )}>
+            <h2
+              className={cn(
+                "font-bold transition-all duration-300 cursor-pointer",
+                isDark ? "text-purple-300" : "text-blue-600",
+                isCollapsed ? "text-sm ml-1" : "text-xl px-4"
+              )}
+              onClick={() => navigate('/')}
+            >
               {isCollapsed ? "GA" : "GoalArc"}
             </h2>
-            <Button
+
+            {/* Collapse Button 👇 */}
+
+            {/* <Button
               variant="ghost"
               size="icon"
               className={cn(
@@ -70,25 +76,75 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
                   ? "hover:bg-gray-800 text-gray-300"
                   : "hover:bg-gray-100 text-gray-600"
               )}
-            // onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={() => setIsCollapsed(!isCollapsed)}
             >
-              {/* {isCollapsed ? (
+              {isCollapsed ? (
                 <ChevronRight className="h-5 w-5" />
               ) : (
                 <SidebarClose className="h-5 w-5" />
-              )} */}
-            </Button>
+              )}
+            </Button> */}
           </div>
 
-          <div className="space-y-1">
-            {/* Menu Items */}
+          {/* Main Navigation Section */}
+          <div className="space-y-1 mb-6 mt-12">
+            {!isCollapsed && (
+              <div className={cn(
+                "px-4 mb-2 text-xs font-semibold",
+                isDark ? "text-gray-500" : "text-gray-400"
+              )}>
+                Activities
+              </div>
+            )}
+
+            {/* Primary Menu Items */}
             {[
-              { path: '/overview', icon: LayoutDashboard, label: 'Overview' },
-              { path: '/calendar', icon: Calendar, label: 'Calendar' },
               { path: '/todos', icon: CheckSquare, label: 'My Tasks' },
+              { path: '/calendar', icon: Calendar, label: 'Calendar' },
               { path: '/pomodoro', icon: Timer, label: 'Pomodoro' },
+            ].map((item) => (
+              <Button
+                key={item.path}
+                variant={isActivePath(item.path) ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start",
+                  isCollapsed ? "px-0" : "",
+                  isDark
+                    ? `${isActivePath(item.path)
+                      ? "bg-purple-900/50 text-purple-300 hover:bg-purple-900/70"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-300"}`
+                    : `${isActivePath(item.path)
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-600 hover:bg-gray-100"}`
+                )}
+                onClick={() => navigate(item.path)}
+              >
+                <div className={cn(
+                  "flex items-center",
+                  isCollapsed ? "justify-center w-full px-0" : "justify-start px-4"
+                )}>
+                  <item.icon className="h-4 w-4" />
+                  {!isCollapsed && <span className="ml-2">{item.label}</span>}
+                </div>
+              </Button>
+            ))}
+          </div>
+
+          {/* Progress & Analytics Section */}
+          <div className="space-y-1 mb-6">
+            {!isCollapsed && (
+              <div className={cn(
+                "px-4 mb-2 text-xs font-semibold",
+                isDark ? "text-gray-500" : "text-gray-400"
+              )}>
+                Progress
+              </div>
+            )}
+
+            {/* Analytics Menu Items */}
+            {[
               { path: '/streaks', icon: Flame, label: 'Streaks' },
-              { path: '/leaderboard', icon: Medal, label: 'LeaderBoard' },
+              { path: '/leaderboard', icon: Medal, label: 'Leaderboard' },
             ].map((item) => (
               <Button
                 key={item.path}
@@ -118,8 +174,45 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
           </div>
         </div>
 
-        {/* Dark Mode Toggle */}
+        {/* Preferences Section */}
         <div className="px-3 py-2">
+          {!isCollapsed && (
+            <div className={cn(
+              "px-4 mb-2 text-xs font-semibold",
+              isDark ? "text-gray-500" : "text-gray-400"
+            )}>
+              Preferences
+            </div>
+          )}
+
+          {/* Settings */}
+          <div className="space-y-1 mb-2">
+            <Button
+              variant={isActivePath('/settings') ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start",
+                isCollapsed ? "px-0" : "",
+                isDark
+                  ? `${isActivePath('/settings')
+                    ? "bg-purple-900/50 text-purple-300 hover:bg-purple-900/70"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-purple-300"}`
+                  : `${isActivePath('/settings')
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-100"}`
+              )}
+              onClick={() => navigate('/settings')}
+            >
+              <div className={cn(
+                "flex items-center",
+                isCollapsed ? "justify-center w-full px-0" : "justify-start px-4"
+              )}>
+                <Settings className="h-4 w-4" />
+                {!isCollapsed && <span className="ml-2">Settings</span>}
+              </div>
+            </Button>
+          </div>
+
+          {/* Theme Toggle */}
           <Button
             variant="ghost"
             className={cn(
@@ -149,57 +242,37 @@ const Sidebar = ({ className, setIsAuthenticated }) => {
           </Button>
         </div>
 
-        {/* Bottom Section */}
-        <div className="px-3 py-2">
-          <div className="space-y-1">
-            {/* Settings and Help */}
-            {[
-              { path: '/settings', icon: Settings, label: 'Settings' },
-              { path: '/help', icon: HelpCircle, label: 'Help center' },
-            ].map((item) => (
-              <Button
-                key={item.path}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start",
-                  isCollapsed ? "px-0" : "",
-                  isDark
-                    ? "text-gray-400 hover:bg-gray-800 hover:text-purple-300"
-                    : "text-gray-600 hover:bg-gray-100"
-                )}
-                onClick={() => navigate(item.path)}
-              >
-                <div className={cn(
-                  "flex items-center",
-                  isCollapsed ? "justify-center w-full px-0" : "justify-start px-4"
-                )}>
-                  <item.icon className="h-4 w-4" />
-                  {!isCollapsed && <span className="ml-2">{item.label}</span>}
-                </div>
-              </Button>
-            ))}
+        {/* Account Section */}
+        <div className="px-3 py-2 mt-auto">
+          {!isCollapsed && (
+            <div className={cn(
+              "px-4 mb-2 text-xs font-semibold",
+              isDark ? "text-gray-500" : "text-gray-400"
+            )}>
+              Account
+            </div>
+          )}
 
-            {/* Logout button */}
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start",
-                isCollapsed ? "px-0" : "",
-                isDark
-                  ? "text-red-400 hover:bg-red-900/20 hover:text-red-300"
-                  : "text-red-600 hover:bg-red-50 hover:text-red-700"
-              )}
-              onClick={handleLogout}
-            >
-              <div className={cn(
-                "flex items-center",
-                isCollapsed ? "justify-center w-full px-0" : "justify-start px-4"
-              )}>
-                <LogOut className="h-4 w-4" />
-                {!isCollapsed && <span className="ml-2">Logout</span>}
-              </div>
-            </Button>
-          </div>
+          {/* Logout button */}
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start",
+              isCollapsed ? "px-0" : "",
+              isDark
+                ? "text-red-400 hover:bg-red-900/20 hover:text-red-300"
+                : "text-red-600 hover:bg-red-50 hover:text-red-700"
+            )}
+            onClick={handleLogout}
+          >
+            <div className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center w-full px-0" : "justify-start px-4"
+            )}>
+              <LogOut className="h-4 w-4" />
+              {!isCollapsed && <span className="ml-2">Logout</span>}
+            </div>
+          </Button>
         </div>
       </div>
     </div>

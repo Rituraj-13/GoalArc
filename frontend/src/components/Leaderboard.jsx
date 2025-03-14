@@ -7,6 +7,7 @@ import { Trophy, Medal, Clock, Star, Info, Crown, Award, Users, X, Flame, Trendi
 import Sidebar from "./Sidebar"
 import { useTheme } from "./ThemeProvider"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const Leaderboard = ({ setIsAuthenticated }) => {
     const [leaderboardData, setLeaderboardData] = useState([])
@@ -224,11 +225,53 @@ const Leaderboard = ({ setIsAuthenticated }) => {
         )
     }
 
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    }
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 12
+            }
+        }
+    }
+
+    const tableRowVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 12
+            }
+        }
+    }
+
     if (loading) {
         return (
             <div className="flex h-screen">
                 <Sidebar setIsAuthenticated={setIsAuthenticated} />
-                <div className="flex-1 flex justify-center items-center">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex-1 flex justify-center items-center"
+                >
                     <div className="flex flex-col items-center gap-4">
                         <div
                             className={cn(
@@ -236,11 +279,15 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                 isDark ? "border-purple-500" : "border-blue-500",
                             )}
                         ></div>
-                        <p className={cn("text-sm font-medium", isDark ? "text-gray-400" : "text-gray-500")}>
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={cn("text-sm font-medium", isDark ? "text-gray-400" : "text-gray-500")}
+                        >
                             Loading leaderboard...
-                        </p>
+                        </motion.p>
                     </div>
-                </div>
+                </motion.div>
             </div>
         )
     }
@@ -252,28 +299,44 @@ const Leaderboard = ({ setIsAuthenticated }) => {
         <div className="flex h-screen overflow-hidden">
             <Sidebar setIsAuthenticated={setIsAuthenticated} />
 
-            <div className={cn(
-                "flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent bg-background text-foreground",
-                isDark
-                    ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
-                    : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400",
-            )}>
-                <div className="max-w-7xl mx-auto px-4 py-8 mt-8 md:mt-0 md:px-6 md:py-10">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className={cn(
+                    "flex-1 overflow-auto scrollbar-thin scrollbar-track-transparent bg-background text-foreground",
+                    isDark
+                        ? "scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500"
+                        : "scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400",
+                )}
+            >
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="max-w-7xl mx-auto px-4 py-8 mt-8 md:mt-0 md:px-6 md:py-10"
+                >
                     {/* Header - Left aligned */}
-                    <div className="mb-8">
+                    <motion.div
+                        variants={itemVariants}
+                        className="mb-8"
+                    >
                         <div className="flex items-center gap-3">
                             <Trophy className={cn("w-8 h-8", isDark ? "text-yellow-400" : "text-yellow-500")} />
                             <h1 className={cn("text-2xl md:text-3xl font-bold", isDark ? "text-white" : "text-gray-900")}>
                                 Leaderboard
                             </h1>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Main content - Side by side on large screens */}
-                    <div className="grid lg:grid-cols-2 gap-8 mb-10">
+                    <motion.div
+                        variants={containerVariants}
+                        className="grid lg:grid-cols-2 gap-8 mb-10"
+                    >
                         {/* Podium Section */}
                         {topUsers.length > 0 && (
-                            <div
+                            <motion.div
+                                variants={itemVariants}
                                 className={cn(
                                     "p-4 sm:p-6 rounded-xl border border-border bg-card",
                                     isDark ? "border-gray-700" : "border-gray-200",
@@ -458,12 +521,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                     {/* Podium Base */}
                                     <div className={cn("h-4 w-full max-w-md rounded-t-lg", isDark ? "bg-gray-700" : "bg-gray-200")}></div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* User Rank Card */}
                         {userRank && (
-                            <div
+                            <motion.div
+                                variants={itemVariants}
                                 className={cn(
                                     "p-4 sm:p-6 rounded-xl border border-border bg-card h-full",
                                     isDark ? "border-gray-700" : "border-gray-200",
@@ -568,12 +632,15 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                         View Score Details
                                     </button>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
-                    </div>
+                    </motion.div>
 
                     {/* Leaderboard Table */}
-                    <div className="max-w-full">
+                    <motion.div
+                        variants={itemVariants}
+                        className="max-w-full"
+                    >
                         <div className="flex items-center justify-between mb-4 sm:mb-6">
                             <h2
                                 className={cn("text-lg sm:text-xl font-bold flex items-center gap-2", isDark ? "text-gray-200" : "text-gray-800")}
@@ -586,7 +653,8 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                             </div>
                         </div>
 
-                        <div
+                        <motion.div
+                            variants={itemVariants}
                             className={cn(
                                 "rounded-xl overflow-hidden border shadow-sm border-border bg-card",
                                 isDark ? "border-gray-700" : "border-gray-200",
@@ -641,8 +709,13 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {leaderboardData.map((entry, index) => (
-                                            <tr
+                                            <motion.tr
                                                 key={entry._id}
+                                                variants={tableRowVariants}
+                                                initial="hidden"
+                                                animate="visible"
+                                                custom={index}
+                                                transition={{ delay: index * 0.05 }}
                                                 className={cn(
                                                     "transition-colors",
                                                     isDark
@@ -745,17 +818,25 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                                                         <span className="hidden sm:inline">Details</span>
                                                     </button>
                                                 </td>
-                                            </tr>
+                                            </motion.tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
 
-            {showScoreBreakdown && selectedUser && <ScoreBreakdown user={selectedUser} />}
+            {showScoreBreakdown && selectedUser && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    <ScoreBreakdown user={selectedUser} />
+                </motion.div>
+            )}
         </div>
     )
 }
