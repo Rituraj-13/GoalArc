@@ -264,7 +264,8 @@ const AuthForm = ({ setIsAuthenticated }) => {
         }
 
         const endpoint = isSignUp ? "signup" : "signin"
-        const backendUrl = `http://localhost:3000/${endpoint}`
+        // const backendUrl = `http://localhost:3000/${endpoint}`
+        const backendUrl = `http://goalarcservices.riturajdey.com/${endpoint}`
         setIsLoading(true)
         const loadingToastId = toast.loading(isSignUp ? "Creating account..." : "Signing in...")
 

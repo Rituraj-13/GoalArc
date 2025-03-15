@@ -25,7 +25,8 @@ const Settings = ({ setIsAuthenticated }) => {
     const fetchUserData = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("http://localhost:3000/user/profile", {
+            // const response = await axios.get("http://localhost:3000/user/profile", {
+            const response = await axios.get("http://goalarcservices.riturajdey.com/user/profile", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -82,7 +83,8 @@ const Settings = ({ setIsAuthenticated }) => {
 
                 try {
                     const uploadResponse = await axios.post(
-                        'http://localhost:3000/user/upload',
+                        // 'http://localhost:3000/user/upload',
+                        'http://goalarcservices.riturajdey.com/user/upload',
                         formData,
                         {
                             headers: {
@@ -108,7 +110,8 @@ const Settings = ({ setIsAuthenticated }) => {
             // If email is being changed, send OTP first
             if (newEmail && newEmail !== email) {
                 try {
-                    await axios.post("http://localhost:3000/resend-otp", {
+                    // await axios.post("http://localhost:3000/resend-otp", {
+                    await axios.post("http://goalarcservices.riturajdey.com/resend-otp", {
                         email: newEmail,
                     })
 
@@ -123,7 +126,8 @@ const Settings = ({ setIsAuthenticated }) => {
             }
 
             // If no email change, just update other fields
-            const response = await axios.put("http://localhost:3000/user/profile", updateData, {
+            // const response = await axios.put("http://localhost:3000/user/profile", updateData, {
+            const response = await axios.put("http://goalarcservices.riturajdey.com/user/profile", updateData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -148,7 +152,8 @@ const Settings = ({ setIsAuthenticated }) => {
         try {
             const token = localStorage.getItem("todoToken")
             await axios.put(
-                "http://localhost:3000/user/profile",
+                // "http://localhost:3000/user/profile",
+                "http://goalarcservices.riturajdey.com/user/profile",
                 {
                     firstName,
                     lastName,

@@ -42,7 +42,8 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
     const fetchTodos = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("http://localhost:3000/todos", {
+            // const response = await axios.get("http://localhost:3000/todos", {
+            const response = await axios.get("http://goalarcservices.riturajdey.com/todos", {
                 headers: { Authorization: `Bearer ${token}` },
             })
             setTodos(response.data.filter((todo) => !todo.completed))
@@ -54,7 +55,8 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
     const fetchStats = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("http://localhost:3000/pomodoro/stats", {
+            // const response = await axios.get("http://localhost:3000/pomodoro/stats", {
+            const response = await axios.get("http://goalarcservices.riturajdey.com/pomodoro/stats", {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
                     todoId: selectedTodo?._id || null,

@@ -1,0 +1,298 @@
+# Setting Up a Backend on a Subdomain - Complete Guide
+
+This guide provides step-by-step instructions for setting up a Node.js backend application on a subdomain using Nginx as a reverse proxy on an Ubuntu server.
+
+## 1. Prerequisites
+
+- A registered domain name
+- An EC2 instance or VPS running Ubuntu
+- SSH access to your server
+- A Node.js application
+
+## 2. Update Your System
+
+Always start by updating your system:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+## 3. Install Required Software
+
+Install Node.js, npm, and Nginx:
+
+```bash
+# Install Node.js and npm
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Install Nginx
+sudo apt install -y nginx
+
+# Verify installations
+node -v
+npm -v
+nginx -v
+```
+
+## 4. Configure DNS Settings
+
+Add an A record for your subdomain pointing to your server's IP address:
+
+1. Go to your domain registrar's DNS management page
+2. Add an A record:
+   - Type: A
+   - Name: subdomain (e.g., api)
+   - Value: Your server's IP address (e.g., 65.1.134.115)
+   - TTL: 3600 (or as recommended)
+
+## 5. Deploy Your Node.js Application
+
+Clone or upload your application to the server:
+
+```bash
+# Example: Clone from Git repository
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+
+# Install dependencies
+npm install
+
+# Test your application
+node app.js
+```
+
+Make sure your application has a route for the root path:
+
+```javascript
+// Add this to your main application file (e.g., app.js, index.js, or server.js)
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to Your API" });
+});
+```
+
+## 6. Set Up Process Manager (PM2)
+
+Install and configure PM2 to keep your application running:
+
+```bash
+# Install PM2 globally
+sudo npm install -g pm2
+
+# Start your application with PM2
+cd /path/to/your/app
+pm2 start app.js --name "your-app-name"
+
+# Configure PM2 to start on system boot
+pm2 startup
+# Run the command that PM2 outputs
+
+# Save the PM2 process list
+pm2 save
+```
+
+## 7. Configure Nginx as a Reverse Proxy
+
+Create a new Nginx server block configuration:
+
+```bash
+sudo nano /etc/nginx/sites-available/your-subdomain.your-domain.com
+```
+
+Add the following configuration:
+
+```nginx
+server {
+    listen 80;
+    server_name your-subdomain.your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;  # Change port if your app uses a different one
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+Enable the configuration by creating a symbolic link:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/your-subdomain.your-domain.com /etc/nginx/sites-enabled/
+```
+
+Test the Nginx configuration:
+
+```bash
+sudo nginx -t
+```
+
+If the test is successful, restart Nginx:
+
+```bash
+sudo systemctl restart nginx
+```
+
+## 8. Configure Firewall
+
+Ensure that the firewall allows HTTP and HTTPS traffic:
+
+```bash
+sudo ufw allow 'Nginx Full'
+sudo ufw status
+```
+
+## 9. Set Up SSL/TLS with Let's Encrypt (Optional but Recommended)
+
+Install Certbot:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+Obtain and install an SSL certificate:
+
+```bash
+sudo certbot --nginx -d your-subdomain.your-domain.com
+```
+
+Follow the prompts to complete the setup.
+
+## 10. Verify Your Setup
+
+Test that your subdomain is working correctly:
+
+```bash
+curl -I http://your-subdomain.your-domain.com
+```
+
+You should see a successful HTTP response.
+
+## 11. Troubleshooting
+
+If you encounter issues, check the following:
+
+### Nginx Logs:
+```bash
+sudo tail -n 100 /var/log/nginx/error.log
+sudo tail -n 100 /var/log/nginx/access.log
+```
+
+### Application Logs:
+```bash
+pm2 logs your-app-name
+```
+
+### DNS Resolution:
+```bash
+nslookup your-subdomain.your-domain.com
+```
+
+### Firewall Status:
+```bash
+sudo ufw status
+```
+
+### Check if Your Application is Running:
+```bash
+pm2 list
+```
+
+### Check if Nginx is Running:
+```bash
+sudo systemctl status nginx
+```
+
+## 12. Common Issues and Solutions
+
+### 1. "Connection refused" error:
+- Check if your Node.js application is running
+- Verify the port in the Nginx configuration matches your application's port
+
+### 2. "404 Not Found" error:
+- Ensure your application has a route for the path being accessed
+- Check Nginx configuration for correct proxy_pass directive
+
+### 3. "502 Bad Gateway" error:
+- Your Node.js application might be crashing
+- Check application logs for errors
+
+### 4. DNS not resolving:
+- DNS changes can take time to propagate (up to 48 hours)
+- Verify your DNS settings with your domain registrar
+
+## 13. Security Considerations
+
+- Set up a firewall (UFW)
+- Use SSL/TLS encryption
+- Implement rate limiting in Nginx
+- Keep your system and packages updated
+- Use environment variables for sensitive information
+
+## 14. Example for a Complete Setup
+
+Here's a complete example for setting up a subdomain called "api.example.com" for a Node.js application running on port 3000:
+
+1. DNS A Record:
+   - Type: A
+   - Name: api
+   - Value: Your server's IP address
+   - TTL: 3600
+
+2. Node.js Application (app.js):
+```javascript
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to API' });
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+```
+
+3. PM2 Setup:
+```bash
+pm2 start app.js --name "api-app"
+pm2 startup
+pm2 save
+```
+
+4. Nginx Configuration (/etc/nginx/sites-available/api.example.com):
+```nginx
+server {
+    listen 80;
+    server_name api.example.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+5. Enable and Restart:
+```bash
+sudo ln -s /etc/nginx/sites-available/api.example.com /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+6. SSL Setup:
+```bash
+sudo certbot --nginx -d api.example.com
+```
+
+By following these steps, you'll have a secure, properly configured backend running on your subdomain.

@@ -60,7 +60,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             try {
                 setLoading(true);
                 const token = localStorage.getItem('todoToken');
-                const response = await axios.get('http://localhost:3000/todos/streak', {
+                // const response = await axios.get('http://localhost:3000/todos/streak', {
+                const response = await axios.get('http://goalarcservices.riturajdey.com/todos/streak', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -94,7 +95,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const fetchTodos = async () => {
         try {
             const token = localStorage.getItem('todoToken');
-            const response = await axios.get('http://localhost:3000/todos', {
+            // const response = await axios.get('http://localhost:3000/todos', {
+            const response = await axios.get('http://goalarcservices.riturajdey.com/todos', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -116,7 +118,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
         try {
             const token = localStorage.getItem('todoToken');
-            const response = await axios.post('http://localhost:3000/todos',
+            // const response = await axios.post('http://localhost:3000/todos',
+            const response = await axios.post('http://goalarcservices.riturajdey.com/todos',
                 {
                     title: newTodo,
                     description: newDesc,
@@ -147,7 +150,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
             const token = localStorage.getItem('todoToken');
             const response = await axios.put(
-                `http://localhost:3000/todos/${todoId}`,
+                // `http://localhost:3000/todos/${todoId}`,
+                `http://goalarcservices.riturajdey.com/todos/${todoId}`,
                 {
                     completed: !todoToUpdate.completed // Toggle the completed status
                 },
@@ -180,7 +184,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const handleDeleteTodo = async (id) => {
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.delete(`http://localhost:3000/todos/${id}`, {
+            // await axios.delete(`http://localhost:3000/todos/${id}`, {
+            await axios.delete(`http://goalarcservices.riturajdey.com/todos/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -194,7 +199,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
     const handleEditTodo = async (updatedTodo) => {
         try {
-            const response = await fetch(`http://localhost:3000/todos/${updatedTodo._id}`, {
+            // const response = await fetch(`http://localhost:3000/todos/${updatedTodo._id}`, {
+            const response = await fetch(`http://goalarcservices.riturajdey.com/todos/${updatedTodo._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -224,7 +230,8 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const handleUpdateTodo = async (id) => {
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.put(`http://localhost:3000/todos/${id}`,
+            // await axios.put(`http://localhost:3000/todos/${id}`,
+            await axios.put(`http://goalarcservices.riturajdey.com/todos/${id}`,
                 {
                     title: editTitle,
                     description: editDesc,

@@ -31,7 +31,8 @@ export const PomodoroProvider = ({ children }) => {
 
     try {
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
+      // const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
+      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           todoId: todoId,
@@ -49,7 +50,8 @@ export const PomodoroProvider = ({ children }) => {
   const fetchCompletedSessions = async () => {
     try {
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
+      // const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
+      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           type: 'work',
@@ -66,7 +68,8 @@ export const PomodoroProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('http://localhost:3000/pomodoro/settings', {
+      // const response = await axios.get('http://localhost:3000/pomodoro/settings', {
+      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/settings', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSettings(response.data);
@@ -158,7 +161,8 @@ export const PomodoroProvider = ({ children }) => {
         endTime: new Date()
       };
 
-      await axios.post('http://localhost:3000/pomodoro/sessions', sessionData, {
+      // await axios.post('http://localhost:3000/pomodoro/sessions', sessionData, {
+      await axios.post('http://goalarcservices.riturajdey.com/pomodoro/sessions', sessionData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

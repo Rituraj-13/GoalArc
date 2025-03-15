@@ -1,0 +1,511 @@
+# Detailed Deployment Guide for Todo AI Application
+
+## Overview
+This guide provides a comprehensive, step-by-step approach to deploying your full-stack Todo application using AWS free tier services. Each step includes detailed explanations and commands where applicable.
+
+
+## Part 1: Initial Setup and Domain Registration
+
+### Step 1: Domain Registration
+1. **Choose Your Domain Provider**:
+   - Option 1 (Recommended for Production): Namecheap or GoDaddy
+     * Visit namecheap.com or godaddy.com
+     * Budget: $10-15 for first year
+     * Offers better reliability and features
+   
+   - Option 2 (Free Option): Freenom
+     * Visit freenom.com
+     * Select a free domain (.tk, .ml, .ga, .cf, or .gq)
+     * Note: Less reliable, limited features
+
+2. **Domain Selection Process**:
+   a. Choose a domain name that reflects your app (e.g., goalarc.com)
+   b. Check domain availability
+   c. Select domain privacy protection (recommended)
+   d. Complete purchase
+   e. Save all login credentials securely
+
+### Step 2: AWS Account Creation and Setup
+1. **Create AWS Account**:
+   a. Visit aws.amazon.com/free
+   b. Click "Create an AWS Account"
+   c. Fill in required information:
+      - Email address
+      - AWS account name
+      - Password
+   d. Add payment method (required even for free tier)
+   e. Complete phone verification
+   f. Select Free tier plan
+
+2. **Set Up AWS IAM (Identity and Access Management)**:
+   a. Log into AWS Console
+   b. Search for "IAM" in services
+   c. Create new IAM user:
+      ```
+      - Click "Users" → "Add user"
+      - Username: todo-app-admin
+      - Access type: Programmatic access + AWS Management Console
+      ```
+   d. Set permissions:
+      ```
+      - Select "Attach existing policies directly"
+      - Add these policies:
+        * AmazonEC2FullAccess
+        * AmazonS3FullAccess
+        * AmazonRDSFullAccess
+        * CloudFrontFullAccess
+        * IAMFullAccess
+      ```
+   e. Enable MFA (Multi-Factor Authentication):
+      - Click on user name
+      - Select "Security credentials"
+      - "Assign MFA device"
+      - Use Google Authenticator or similar app
+
+3. **Configure AWS CLI Locally**:
+   ```bash
+   # Install AWS CLI
+   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   unzip awscliv2.zip
+   sudo ./aws/install
+
+   # Configure AWS CLI
+   aws configure
+   # Enter your:
+   # - AWS Access Key ID
+   # - AWS Secret Access Key
+   # - Default region (e.g., us-east-1)
+   # - Output format (json)
+   ```
+
+## Part 2: Backend Infrastructure Setup
+
+### Step 1: EC2 Instance Setup
+1. **Launch EC2 Instance**:
+   a. Open AWS Console → EC2 Dashboard
+   b. Click "Launch Instance"
+   c. Configure instance:
+      ```
+      - Name: todo-app-backend
+      - AMI: Amazon Linux 2 AMI (free tier eligible)
+      - Instance type: t2.micro (free tier)
+      - Key pair: Create new
+        * Key pair name: todo-app-key
+        * Download .pem file
+      ```
+   d. Configure security group:
+      ```
+      - Create new security group
+      - Name: todo-app-sg
+      - Add rules:
+        * SSH (22) - Your IP
+        * HTTP (80) - Anywhere
+        * HTTPS (443) - Anywhere
+        * Custom TCP (3000) - Anywhere (for Node.js app)
+      ```
+   e. Launch instance
+
+2. **Connect to EC2 Instance**:
+   ```bash
+   # Change key file permissions
+   chmod 400 todo-app-key.pem
+
+   # Connect to instance
+   ssh -i todo-app-key.pem ec2-user@your-instance-ip
+
+   # Test connection
+   echo "Connected to EC2 instance"
+   ```
+
+3. **Install Required Software**:
+   ```bash
+   # Update system
+   sudo yum update -y
+
+   # Install development tools
+   sudo yum groupinstall "Development Tools" -y
+
+   # Install Node.js using nvm
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+   source ~/.bashrc
+   nvm install 18
+   nvm use 18
+
+   # Install Git
+   sudo yum install git -y
+
+   # Install PM2 globally
+   npm install -g pm2
+   ```
+
+### Step 2: MongoDB Atlas Setup
+1. **Create MongoDB Atlas Account**:
+   a. Visit mongodb.com/cloud/atlas
+   b. Sign up for free account
+   c. Create new project:
+      ```
+      - Project name: todo-app
+      - Create Project
+      ```
+
+2. **Create Free Cluster**:
+   a. Click "Build a Database"
+   b. Select "FREE" tier
+   c. Choose configuration:
+      ```
+      - Cloud Provider & Region: AWS (select closest to your users)
+      - Cluster Tier: M0 Sandbox (Free)
+      - Cluster Name: todo-app-cluster
+      ```
+   d. Create cluster
+
+3. **Configure Database Access**:
+   a. Create database user:
+      ```
+      - Username: todo-app-user
+      - Password: Generate secure password
+      - Role: Read and write to any database
+      ```
+   b. Configure network access:
+      ```
+      - IP Access List: Add Current IP Address
+      - Add EC2 instance IP
+      - For development: Add 0.0.0.0/0 (not recommended for production)
+      ```
+
+4. **Get Connection String**:
+   - Click "Connect"
+   - Choose "Connect your application"
+   - Copy connection string
+   - Replace <password> with your database user password
+
+### Step 3: Backend Deployment
+1. **Prepare Backend Code**:
+   ```bash
+   # On EC2 instance
+   mkdir -p ~/app/backend
+   cd ~/app/backend
+
+   # Clone repository
+   git clone <your-repo-url> .
+
+   # Install dependencies
+   npm install
+   ```
+
+2. **Configure Environment Variables**:
+   ```bash
+   # Create .env file
+   nano .env
+
+   # Add these variables
+   MONGO_URL=your_mongodb_connection_string
+   JWT_SECRET=generate_secure_random_string
+   MAILERSEND_API_KEY=your_mailersend_key
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   AWS_REGION=your_aws_region
+   AWS_BUCKET_NAME=goalarc-profile-pictures
+   ```
+
+3. **Set Up PM2 for Process Management**:
+   ```bash
+   # Start application with PM2
+   pm2 start auth.js --name "todo-backend"
+
+   # Enable startup script
+   pm2 startup
+   # Run the command PM2 provides
+
+   # Save PM2 configuration
+   pm2 save
+
+   # Check if application is running
+   pm2 list
+   pm2 logs todo-backend
+   ```
+
+4. **Verify Cron Jobs**:
+   ```bash
+   # Check PM2 logs for cron job execution
+   pm2 logs todo-backend | grep "Running daily streak check"
+   pm2 logs todo-backend | grep "Running the leaderboard update service"
+   ```
+
+## Part 3: Frontend Deployment
+
+### Step 1: Prepare Frontend for Production
+1. **Update API Configuration**:
+   ```javascript
+   // In your frontend config file
+   const API_URL = 'https://api.yourdomain.com';
+   ```
+
+2. **Build Frontend**:
+   ```bash
+   # In frontend directory
+   npm install
+   npm run build
+   ```
+
+### Step 2: S3 Bucket Setup
+1. **Create S3 Bucket for Frontend**:
+   a. Open AWS Console → S3
+   b. Create bucket:
+      ```
+      - Bucket name: www.yourdomain.com
+      - Region: Same as EC2
+      - Unblock all public access (needed for website hosting)
+      ```
+
+2. **Enable Static Website Hosting**:
+   a. Select bucket → Properties
+   b. Scroll to "Static website hosting"
+   c. Enable:
+      ```
+      - Hosting type: Host a static website
+      - Index document: index.html
+      - Error document: index.html
+      ```
+
+3. **Configure Bucket Policy**:
+   a. Select bucket → Permissions
+   b. Edit bucket policy:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "PublicReadGetObject",
+         "Effect": "Allow",
+         "Principal": "*",
+         "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::www.yourdomain.com/*"
+       }
+     ]
+   }
+   ```
+
+4. **Upload Frontend Build**:
+   ```bash
+   # Install AWS CLI if not already installed
+   pip install awscli
+
+   # Configure AWS CLI with your credentials
+   aws configure
+
+   # Upload build files
+   aws s3 sync dist/ s3://www.yourdomain.com --delete
+   ```
+
+### Step 3: CloudFront Setup
+1. **Create CloudFront Distribution**:
+   a. Open AWS Console → CloudFront
+   b. Create distribution:
+      ```
+      - Origin domain: Select S3 bucket
+      - Viewer protocol policy: Redirect HTTP to HTTPS
+      - Alternate domain names: www.yourdomain.com
+      - SSL Certificate: Request certificate in ACM
+      ```
+
+2. **Configure SSL Certificate**:
+   a. Open AWS Certificate Manager
+   b. Request certificate:
+      ```
+      - Domain names: yourdomain.com, www.yourdomain.com
+      - Validation method: DNS validation
+      - Add CNAME records to your domain registrar
+      ```
+
+## Part 4: Email Service Setup
+
+### Step 1: MailerSend Configuration
+1. **Create MailerSend Account**:
+   a. Visit mailersend.com
+   b. Sign up for free account
+   c. Verify your domain:
+      - Add domain
+      - Add DNS records to your domain registrar
+      - Wait for verification
+
+2. **Configure API Keys**:
+   a. Generate API key:
+      ```
+      - Go to Settings → API
+      - Create new token
+      - Save token securely
+      ```
+   b. Update backend .env:
+      ```
+      MAILERSEND_API_KEY=your_api_key
+      ```
+
+## Part 5: Final Configuration
+
+### Step 1: DNS Configuration
+1. **Configure Domain DNS**:
+   a. Log into domain registrar
+   b. Add records:
+      ```
+      - CNAME www → CloudFront distribution domain
+      - A @ → EC2 instance IP
+      - A api → EC2 instance IP
+      ```
+
+2. **Wait for DNS Propagation**:
+   - Can take up to 48 hours
+   - Use whatsmydns.net to check propagation
+
+### Step 2: SSL Setup
+1. **Set Up SSL for Backend**:
+   ```bash
+   # Install Certbot
+   sudo amazon-linux-extras install epel -y
+   sudo yum install certbot python-certbot-nginx -y
+
+   # Get certificate
+   sudo certbot --nginx -d api.yourdomain.com
+   ```
+
+2. **Configure Nginx**:
+   ```bash
+   # Install Nginx
+   sudo yum install nginx -y
+
+   # Create Nginx config
+   sudo nano /etc/nginx/conf.d/todo-app.conf
+
+   # Add configuration
+   server {
+       listen 443 ssl;
+       server_name api.yourdomain.com;
+       
+       ssl_certificate /etc/letsencrypt/live/api.yourdomain.com/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/api.yourdomain.com/privkey.pem;
+       
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+
+   # Test and restart Nginx
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+## Part 6: Monitoring and Maintenance
+
+### Step 1: Set Up Monitoring
+1. **Configure CloudWatch**:
+   ```bash
+   # Install CloudWatch agent
+   sudo yum install amazon-cloudwatch-agent -y
+
+   # Configure agent
+   sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+   ```
+
+2. **Set Up PM2 Monitoring**:
+   ```bash
+   # Monitor processes
+   pm2 monit
+
+   # Set up PM2 logging
+   pm2 install pm2-logrotate
+   ```
+
+### Step 2: Create Backup Strategy
+1. **Database Backups**:
+   - Enable MongoDB Atlas backups
+   - Schedule regular backups
+
+2. **EC2 Backups**:
+   - Create AMI of EC2 instance
+   - Schedule regular snapshots
+
+### Step 3: Set Up Alerts
+1. **Create CloudWatch Alarms**:
+   ```
+   - CPU Utilization > 80%
+   - Memory Usage > 80%
+   - Disk Usage > 80%
+   ```
+
+2. **Set Up Billing Alerts**:
+   - Create billing alarm at $1
+   - Enable email notifications
+
+## Final Checklist
+1. **Test All Features**:
+   - User registration/login
+   - Todo creation/deletion
+   - File uploads
+   - Email notifications
+   - Cron jobs execution
+
+2. **Performance Testing**:
+   - Load testing with Artillery
+   - Check response times
+   - Verify SSL configuration
+
+3. **Security Checks**:
+   - Review security groups
+   - Check SSL certificates
+   - Verify environment variables
+   - Test backup/restore procedures
+
+## Maintenance Schedule
+1. **Daily Tasks**:
+   - Check PM2 logs
+   - Monitor application errors
+   - Review usage metrics
+
+2. **Weekly Tasks**:
+   - Update dependencies
+   - Review security patches
+   - Check backup status
+
+3. **Monthly Tasks**:
+   - Rotate access keys
+   - Review AWS costs
+   - Check SSL certificates
+   - Update documentation
+
+## Troubleshooting Guide
+1. **Application Not Responding**:
+   ```bash
+   # Check PM2 status
+   pm2 list
+   pm2 logs todo-backend
+
+   # Check Nginx status
+   sudo systemctl status nginx
+   sudo nginx -t
+   ```
+
+2. **Database Connection Issues**:
+   - Verify MongoDB Atlas status
+   - Check network access rules
+   - Verify connection string
+
+3. **Email Service Problems**:
+   - Check MailerSend dashboard
+   - Verify API key status
+   - Check email logs
+
+4. **SSL Certificate Issues**:
+   ```bash
+   # Check certificate status
+   sudo certbot certificates
+   
+   # Renew certificates
+   sudo certbot renew --dry-run
+   ```
+
+Remember to regularly monitor AWS billing to ensure you stay within free tier limits and set up alerts to notify you of any unexpected charges.

@@ -1,6 +1,7 @@
 const AIResponse = async (title) => {
     try {
-        const response = await fetch('http://localhost:3000/todos/generate-description', {
+        // const response = await fetch('http://localhost:3000/todos/generate-description', {
+        const response = await fetch('http://goalarcservices.riturajdey.com/todos/generate-description', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
