@@ -66,10 +66,11 @@ const PomodoroSettings = ({ onClose }) => {
                 <Input
                   id="workDuration"
                   type="number"
+                  min="5"
                   value={tempSettings.workDuration}
                   onChange={(e) => setTempSettings({
                     ...tempSettings,
-                    workDuration: parseInt(e.target.value)
+                    workDuration: Math.max(5, parseInt(e.target.value) || 5)
                   })}
                 />
               </div>
@@ -80,10 +81,11 @@ const PomodoroSettings = ({ onClose }) => {
                 <Input
                   id="shortBreakDuration"
                   type="number"
+                  min="1"
                   value={tempSettings.shortBreakDuration}
                   onChange={(e) => setTempSettings({
                     ...tempSettings,
-                    shortBreakDuration: parseInt(e.target.value)
+                    shortBreakDuration: Math.max(1, parseInt(e.target.value) || 1)
                   })}
                 />
               </div>
