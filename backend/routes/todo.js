@@ -215,7 +215,7 @@ router.post('/generate-description', async (req, res) => {
         const structure = "```markdown...response...```"
         const API_Key = process.env.VITE_AI_API_KEY;
         const genAI = new GoogleGenerativeAI(API_Key);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
         const prompt = `Create a small concise description in a proper markdown format for a Task that has a title - ${title}
     Note -
