@@ -6,7 +6,7 @@ const mailerSend = new MailerSend({
 
 export const sendVerificationEmail = async (email, otp, firstName, lastName) => {
     try {
-        const sentFrom = new Sender("MS_Tz2wIe@trial-3z0vkloyk71g7qrx.mlsender.net", "GoalArc");
+        const sentFrom = new Sender("MS_DWlSgd@trial-3z0vkloym6vg7qrx.mlsender.net", "GoalArc");
         const recipient = new Recipient(email);
 
         const emailParams = new EmailParams()
