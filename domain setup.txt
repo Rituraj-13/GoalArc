@@ -97,7 +97,7 @@ pm2 save
 Create a new Nginx server block configuration:
 
 ```bash
-sudo nano /etc/nginx/sites-available/your-subdomain.your-domain.com
+sudo nano /etc/nginx/sites-available/goalarcservices.riturajdey.com
 ```
 
 Add the following configuration:
@@ -105,7 +105,7 @@ Add the following configuration:
 ```nginx
 server {
     listen 80;
-    server_name your-subdomain.your-domain.com;
+    server_name goalarcservices.riturajdey.com;
 
     location / {
         proxy_pass http://localhost:3000;  # Change port if your app uses a different one
@@ -121,7 +121,7 @@ server {
 Enable the configuration by creating a symbolic link:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/your-subdomain.your-domain.com /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/goalarcservices.riturajdey.com /etc/nginx/sites-enabled/
 ```
 
 Test the Nginx configuration:
@@ -156,7 +156,7 @@ sudo apt install -y certbot python3-certbot-nginx
 Obtain and install an SSL certificate:
 
 ```bash
-sudo certbot --nginx -d your-subdomain.your-domain.com
+sudo certbot --nginx -d goalarcservices.riturajdey.com
 ```
 
 Follow the prompts to complete the setup.
@@ -166,7 +166,7 @@ Follow the prompts to complete the setup.
 Test that your subdomain is working correctly:
 
 ```bash
-curl -I http://your-subdomain.your-domain.com
+curl -I http://goalarcservices.riturajdey.com
 ```
 
 You should see a successful HTTP response.
@@ -188,7 +188,7 @@ pm2 logs your-app-name
 
 ### DNS Resolution:
 ```bash
-nslookup your-subdomain.your-domain.com
+nslookup goalarcservices.riturajdey.com
 ```
 
 ### Firewall Status:
