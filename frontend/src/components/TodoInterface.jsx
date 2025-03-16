@@ -258,30 +258,49 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         "Make each day your masterpiece."
     ];
 
+    // const getQuote = async () => {
+    //     try {
+    //         const quoteOfTheDay = await fetch("/api/random")
+    //             .then(response => response.json())
+
+    //         const refined_Quote = quoteOfTheDay[0].q;
+
+    //         if (refined_Quote.startsWith("Too")) {
+    //             // Get random fallback quote when API limit is reached
+    //             const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+    //             setQuote(fallbackQuotes[randomIndex]);
+    //             // Optionally show a toast/notification about API limit
+    //             console.log("API rate limit reached, showing fallback quote");
+    //             return fallbackQuotes[randomIndex];
+    //         } else if (!refined_Quote || refined_Quote.trim() === "") {
+    //             // Handle empty or null responses
+    //             setQuote("Stay productive!");
+    //             return "Stay productive!";
+    //         } else {
+    //             return refined_Quote;
+    //         }
+
+    //     } catch (error) {
+    //         console.error('Error fetching quote:', error);
+    //     }
+    // }
+
     const getQuote = async () => {
         try {
-            const quoteOfTheDay = await fetch("/api/random")
-                .then(response => response.json())
-
-            const refined_Quote = quoteOfTheDay[0].q;
-
-            if (refined_Quote.startsWith("Too")) {
-                // Get random fallback quote when API limit is reached
-                const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-                setQuote(fallbackQuotes[randomIndex]);
-                // Optionally show a toast/notification about API limit
-                console.log("API rate limit reached, showing fallback quote");
-                return fallbackQuotes[randomIndex];
-            } else if (!refined_Quote || refined_Quote.trim() === "") {
-                // Handle empty or null responses
-                setQuote("Stay productive!");
-                return "Stay productive!";
-            } else {
-                return refined_Quote;
-            }
-
+            const token = localStorage.getItem('todoToken');
+            const response = await fetch('https://goalarcservices.riturajdey.com/quotes/random', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = await response.json();
+            return data.quote;
+    
         } catch (error) {
             console.error('Error fetching quote:', error);
+            const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+            return fallbackQuotes[randomIndex];
         }
     }
 
