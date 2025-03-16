@@ -1,6 +1,6 @@
 import express from "express"
 import s3Client, { generatePresignedUrl } from '../config/s3Config.js';
-import upload from '../middlewares/uploadMiddleware.js';
+import upload from '../Middlewares/uploadMiddleware.js';
 import AuthMiddleware from "../Middlewares/AuthMiddleware.js";
 import UserObject from "../auth.js"
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
