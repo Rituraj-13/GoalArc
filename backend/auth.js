@@ -67,6 +67,10 @@ const hashingPassword = async (passwordToHash) => {
     }
 }
 
+app.get("/", (req, res) => {
+    res.status(200).json({ message: "Welcome to GoalArc API" });
+});
+
 // ! Hit the backend early to prevent coldstart issue !
 app.get('/hitBackend', async (req, res) => {
     return res.status(200).json({
