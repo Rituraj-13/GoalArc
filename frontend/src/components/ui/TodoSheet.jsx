@@ -196,7 +196,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
 
         // Fetch total focus time
         // const response = await axios.get('http://localhost:3000/pomodoro/stats', {
-        const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/stats', {
+        const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/stats', {
           headers: { 'Authorization': `Bearer ${token}` },
           params: { todoId: todo._id }
         });

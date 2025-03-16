@@ -32,7 +32,7 @@ export const PomodoroProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('todoToken');
       // const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
-      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
+      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           todoId: todoId,
@@ -51,7 +51,7 @@ export const PomodoroProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('todoToken');
       // const response = await axios.get('http://localhost:3000/pomodoro/sessions/count', {
-      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
+      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           type: 'work',
@@ -69,7 +69,7 @@ export const PomodoroProvider = ({ children }) => {
       setIsLoading(true);
       const token = localStorage.getItem('todoToken');
       // const response = await axios.get('http://localhost:3000/pomodoro/settings', {
-      const response = await axios.get('http://goalarcservices.riturajdey.com/pomodoro/settings', {
+      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/settings', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSettings(response.data);
@@ -162,7 +162,7 @@ export const PomodoroProvider = ({ children }) => {
       };
 
       // await axios.post('http://localhost:3000/pomodoro/sessions', sessionData, {
-      await axios.post('http://goalarcservices.riturajdey.com/pomodoro/sessions', sessionData, {
+      await axios.post('https://goalarcservices.riturajdey.com/pomodoro/sessions', sessionData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
