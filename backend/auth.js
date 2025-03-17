@@ -16,6 +16,7 @@ import Streak from "./models/Streak.js";
 import leaderBoard from "./models/leaderBoard.js";
 import leaderBoardRouter from './routes/leaderBoardRanking.js';
 import { updateAllLeaderboardEntries, updateLeaderboardEntry } from "./services/leaderboardService.js";
+import axios from 'axios';
 
 dotenv.config();
 
@@ -57,6 +58,15 @@ export default UserObject;
 
 // First, create a temporary storage for pending registrations
 const pendingRegistrations = new Map(); // This will store temporary user data
+
+
+const fallbackQuotes = [
+    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    "The only way to do great work is to love what you do.",
+    "Stay focused and never give up.",
+    "Make each day your masterpiece."
+];
+
 
 const hashingPassword = async (passwordToHash) => {
     try {
@@ -365,6 +375,24 @@ app.put('/user/profile', AuthMiddleware, async (req, res) => {
         res.json({ msg: 'Profile updated successfully' });
     } catch (error) {
         res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// Get Quotes
+app.get('/quotes/random', AuthMiddleware, async (req, res) => {
+    try {
+        const response = await axios.get('https://zenquotes.io/api/random');
+        const quote = response.data[0].q;
+
+        if (quote.startsWith("Too") || !quote || quote.trim() === "") {
+            const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+            return res.json({ quote: fallbackQuotes[randomIndex] });
+        }
+
+        res.json({ quote });
+    } catch (error) {
+        const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+        res.json({ quote: fallbackQuotes[randomIndex] });
     }
 });
 
