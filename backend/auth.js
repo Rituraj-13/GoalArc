@@ -372,6 +372,10 @@ app.put('/user/profile', AuthMiddleware, async (req, res) => {
         if (username) user.username = username;
 
         await user.save();
+
+        // Update the leaderboard entry for this user
+        await updateLeaderboardEntry(req.userId);
+
         res.json({ msg: 'Profile updated successfully' });
     } catch (error) {
         res.status(500).json({ msg: 'Server error' });
