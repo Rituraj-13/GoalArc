@@ -200,8 +200,8 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
           headers: { 'Authorization': `Bearer ${token}` },
           params: { todoId: todo._id }
         });
-        console.log("Response: ", response);
-        console.log("sessions: ", sessions);
+        // console.log("Response: ", response);
+        // console.log("sessions: ", sessions);
 
         setPomodoroStats({
           completedSessions: sessions,
