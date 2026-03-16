@@ -26,7 +26,7 @@ export default function App({ children }) {
     const token = localStorage.getItem('todoToken');
     if (token) {
       // Validate token by making a request to protected endpoint
-      axios.get('http://localhost:3000/todos', {
+      axios.get('https://goalarcservices.riturajdey.com/todos', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

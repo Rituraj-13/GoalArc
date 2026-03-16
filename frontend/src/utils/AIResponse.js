@@ -1,6 +1,6 @@
 const AIResponse = async (title) => {
     try {
-        const response = await fetch('http://localhost:3000/todos/generate-description', {
+        const response = await fetch('https://goalarcservices.riturajdey.com/todos/generate-description', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -11,7 +11,7 @@ const AIResponse = async (title) => {
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
-        
+
         return data.description;
     } catch (error) {
         console.error('Error generating AI response:', error);
