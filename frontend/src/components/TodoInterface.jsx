@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast, Toaster } from 'react-hot-toast';
-import { Trash, Pencil, WandSparkles } from 'lucide-react';
-import Header from './Header';
+import { toast } from 'react-hot-toast';
+import { Trash, Pencil, WandSparkles, Plus, ArrowBigRight, ArrowBigRightDashIcon, Calendar, ChevronDown } from 'lucide-react';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
@@ -10,11 +9,18 @@ import { DatePicker, DateTimePicker, MobileDateTimePicker } from '@mui/x-date-pi
 import MDEditor, { commands } from "@uiw/react-md-editor";
 import { Checkbox } from '@mui/material';
 import AIResponse from '../utils/AIResponse';
-import currStreak from '../assets/currStreak.svg';
-import bestStreak from '../assets/bestStreak.svg';
-import bestStreakk from '../assets/bestStreakk.svg';
-
-
+import CreateTaskModal from './CreateTaskModal';
+import Sidebar from './Sidebar';
+import { TodoSheet } from './ui/TodoSheet';
+import { Button } from './ui/button';
+import { cn } from '../lib/utils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { motion } from 'framer-motion';
 const TodoInterface = ({ setIsAuthenticated }) => {
     const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState('');
@@ -28,13 +34,31 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const [editDate, setEditDate] = useState(dayjs());
     const [streak, setStreak] = useState({
         currentStreak: 0,
-        highestStreak: 0
-    })
+        highestStreak: 0,
+        lastCompletionDate: null,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState("all");
+
+    // Get user's name from localStorage or set default
+    const userName = localStorage.getItem('firstName') || 'User';
+
+    // Get greeting based on time of day
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 18) return 'Good Afternoon';
+        return 'Good Evening';
+    };
 
     // Fetch todos, quote, streaks on component mount
     useEffect(() => {
         const fetchStreakData = async () => {
             try {
+                setLoading(true);
                 const token = localStorage.getItem('todoToken');
                 const response = await axios.get('http://localhost:3000/todos/streak', {
                     headers: {
@@ -43,7 +67,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 });
                 setStreak(response.data);
             } catch (error) {
-                console.error('Failed to fetch Streak Data !')
+                console.error('Failed to fetch Streak Data:', error);
+                toast.error('Failed to load streak data');
+            } finally {
+                setLoading(false);
             }
         }
         fetchStreakData();
@@ -53,6 +80,15 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             setQuote(newQuote);
         };
         fetchQuote();
+    }, []);
+
+    useEffect(() => {
+        // Check streak every hour
+        const streakCheckInterval = setInterval(() => {
+            fetchStreakData();
+        }, 60 * 60 * 1000);
+
+        return () => clearInterval(streakCheckInterval);
     }, []);
 
     const fetchTodos = async () => {
@@ -66,14 +102,13 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             setTodos(response.data);
             setLoading(false);
         } catch (error) {
-            toast.error('Failed to Fetch Todos !');
+            console.error('Failed to fetch todos:', error);
             setLoading(false);
         }
     };
 
     const handleAddTodo = async (e) => {
-        e.preventDefault(); // Prevent default form submission
-
+        e.preventDefault();
         if (!newTodo.trim()) {
             toast.error("Please fill out the fields!");
             return;
@@ -81,7 +116,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.post('http://localhost:3000/todos',
+            const response = await axios.post('http://localhost:3000/todos',
                 {
                     title: newTodo,
                     description: newDesc,
@@ -94,25 +129,28 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 }
             );
 
-            // Clear form fields
             setNewTodo('');
             setNewDesc('');
-            setSelectedDate(dayjs()); // Reset to current date/time
-
-            // Fetch updated todos
-            await fetchTodos();
-            toast.success('Task Added Successfully!');
+            setSelectedDate(dayjs());
+            setIsModalOpen(false);
+            setTodos(prev => sortTodos([...prev, response.data]));
+            toast.success('Task added', { duration: 2000 });
         } catch (error) {
-            console.error('Error adding Task:', error);
-            toast.error('Failed to create Task!');
+            toast.error('Failed to add task', { duration: 3000 });
         }
     };
 
-    const handleToggleTodo = async (id, completed) => {
+    const handleToggleTodo = async (todoId) => {
         try {
+            const todoToUpdate = todos.find(t => t._id === todoId);
+            if (!todoToUpdate) return;
+
             const token = localStorage.getItem('todoToken');
-            const response = await axios.put(`http://localhost:3000/todos/${id}`,
-                { completed: !completed },
+            const response = await axios.put(
+                `http://localhost:3000/todos/${todoId}`,
+                {
+                    completed: !todoToUpdate.completed // Toggle the completed status
+                },
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -120,14 +158,22 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 }
             );
 
-            if (response.data.streak) {
-                setStreak(response.data.streak);
-            }
+            // Update local state
+            setTodos(prevTodos =>
+                prevTodos.map(todo =>
+                    todo._id === todoId
+                        ? { ...todo, completed: !todo.completed }
+                        : todo
+                )
+            );
 
-            fetchTodos();
-            toast.success("Task Updated Successfully !");
+            // Show success message if streak milestone reached
+            if (response.data.milestone) {
+                toast.success(`🎉 ${response.data.milestone.count} week streak achieved!`);
+            }
         } catch (error) {
-            toast.error('Failed to Update Task !');
+            toast.error('Failed to update task status');
+            console.error('Error updating todo:', error);
         }
     };
 
@@ -139,18 +185,40 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            fetchTodos();
-            toast.success('Successfully Deleted !');
+            setTodos(prev => prev.filter(todo => todo._id !== id));
+            toast.success('Task deleted', { duration: 2000 });
         } catch (error) {
-            toast.error('Failed to Delete Task !');
+            toast.error('Delete failed', { duration: 3000 });
         }
     };
 
-    const handleEdit = (todo) => {
-        setEditingId(todo._id);
-        setEditTitle(todo.title);
-        setEditDesc(todo.description || '');
-        setEditDate(dayjs(todo.dueDate));
+    const handleEditTodo = async (updatedTodo) => {
+        try {
+            const response = await fetch(`http://localhost:3000/todos/${updatedTodo._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('todoToken')}`
+                },
+                body: JSON.stringify(updatedTodo)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update task');
+            }
+
+            // Update the todos state immediately after successful edit
+            setTodos(prevTodos =>
+                prevTodos.map(todo =>
+                    todo._id === updatedTodo._id ? updatedTodo : todo
+                )
+            );
+
+            toast.success('Task updated successfully');
+        } catch (error) {
+            console.error('Error updating task:', error);
+            toast.error('Failed to update task');
+        }
     };
 
     const handleUpdateTodo = async (id) => {
@@ -170,9 +238,9 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             );
             setEditingId(null);
             fetchTodos();
-            toast.success('Successfully Updated !');
+            toast.success('Task updated', { duration: 2000 });
         } catch (error) {
-            toast.error('Failed to update Task');
+            toast.error('Update failed', { duration: 3000 });
         }
     };
 
@@ -227,11 +295,10 @@ const TodoInterface = ({ setIsAuthenticated }) => {
         execute: async (state, api) => {
             try {
                 if (!newTodo) {
-                    toast.error('Retry by filling the Title !');
+                    toast.error('Title required', { duration: 2000 });
                     return;
                 }
-                // Show loading state
-                toast.loading('Generating Description..⌛');
+                const loadingToastId = toast.loading('Generating...');
 
                 // Get AI response
                 const aiDesc = await AIResponse(newTodo);
@@ -240,347 +307,236 @@ const TodoInterface = ({ setIsAuthenticated }) => {
                 setNewDesc(aiDesc);
 
                 // Dismiss loading toast and show success
-                toast.dismiss();
-                toast.success('Description generated!');
+                toast.dismiss(loadingToastId);
+                toast.success('Description ready', { duration: 2000 });
             } catch (error) {
                 toast.dismiss();
-                toast.error('Failed to generate description');
-                console.error('Error:', error);
+                toast.error('Generation failed', { duration: 3000 });
             }
         },
     };
+
+    const sortTodos = (todos) => {
+        return [...todos].sort((a, b) => {
+            // If one is completed and other is not, completed goes last
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1;
+            }
+
+            const now = dayjs();
+            const aDueDate = dayjs(a.dueDate);
+            const bDueDate = dayjs(b.dueDate);
+            const aIsOverdue = now.isAfter(aDueDate);
+            const bIsOverdue = now.isAfter(bDueDate);
+
+            // If both are completed, sort by due date
+            if (a.completed && b.completed) {
+                return aDueDate.isBefore(bDueDate) ? -1 : 1;
+            }
+
+            // If one is overdue and other is not, overdue goes first
+            if (aIsOverdue !== bIsOverdue) {
+                return aIsOverdue ? -1 : 1;
+            }
+
+            // If both are overdue or both are due, sort by due date
+            return aDueDate.isBefore(bDueDate) ? -1 : 1;
+        });
+    };
+
+    const getFilteredTodos = () => {
+        const today = dayjs().startOf('day');
+        const tomorrow = dayjs().add(1, 'day').startOf('day');
+
+        switch (selectedFilter) {
+            case "today":
+                return todos.filter(todo =>
+                    dayjs(todo.dueDate).isSame(today, 'day')
+                );
+            case "tomorrow":
+                return todos.filter(todo =>
+                    dayjs(todo.dueDate).isSame(tomorrow, 'day')
+                );
+            case "all":
+                return todos;
+            default:
+                return todos;
+        }
+    };
+
     return (
-        <>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-                <Header setIsAuthenticated={setIsAuthenticated} currentStreakData={streak.currentStreak} bestStreakData={streak.highestStreak} />
-                {/* <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                    <div className="flex justify-around items-center">
-                        <span>
-                            <img src={bestStreakk} alt="Current Streak" className="w-14 h-14" />
-                            <img src={currStreak} alt="Current Streak" className="w-14 h-14" />
-                        </span>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-blue-600">{streak.currentStreak}</p>
-                            <p className="text-sm text-gray-600">Current Streak</p>
+        <div className="flex h-screen">
+            <Sidebar setIsAuthenticated={setIsAuthenticated} />
+            <div className="flex-1 overflow-auto relative bg-background">
+                <main className="p-4 md:p-8 pb-48">
+                    {/* Add padding-top for mobile to account for menu button */}
+                    <div className="pt-14 md:pt-0">
+                        {/* Greeting - Make text responsive */}
+                        <div className="mb-6 md:mb-8">
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                            >
+                                <h1 className="text-2xl md:text-4xl font-bold text-foreground">
+                                    {getGreeting()}, {userName}! 👋
+                                </h1>
+                            </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                className="text-sm md:text-base text-muted-foreground mt-2"
+                            >
+                                {new Date().toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })}
+                            </motion.div>
                         </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-indigo-600">{streak.highestStreak}</p>
-                            <p className="text-sm text-gray-600">Best Streak</p>
-                        </div>
-                    </div>
-                </div> */}
 
-                {/* <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                    <div className="flex justify-around items-center">
-                        <div className="flex flex-col items-center">
-                            <img src={currStreak || "/placeholder.svg"} alt="Current Streak" className="w-14 h-14 mb-2" />
-                            <p className="text-sm text-gray-600">Current Streak</p>
-                            <p className=" relative text-3xl font-bold text-blue-600 z-20 bottom-24 left-8">{streak.currentStreak}</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <img src={bestStreakk || "/placeholder.svg"} alt="Best Streak" className="w-14 h-14 mb-2" />
-                            <p className="text-sm text-gray-600">Best Streak</p>
-                            <p className=" relative text-3xl font-bold text-blue-600 z-20 bottom-24 left-8">{streak.highestStreak}</p>
-                        </div>
-                    </div> */}
+                        {/* Todos Section */}
+                        <div className="mb-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <motion.h2
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.4 }}
+                                    className="text-2xl font-semibold text-foreground"
+                                >
+                                    {selectedFilter === "today" && "Due Today 🙇"}
+                                    {selectedFilter === "tomorrow" && "Due Tomorrow ⌛"}
+                                    {selectedFilter === "all" && "All Tasks 🎯"}
+                                </motion.h2>
 
-                {/* <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                    <div className="flex justify-around items-center">
-                        <div className="flex flex-col items-center">
-                            <div className="relative">
-                                <img src={currStreak || "/placeholder.svg"} alt="Current Streak" className="w-12 h-12 hover:scale-110 transition-transform" />
-                                <p className="absolute left-16 bottom-5 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-blue-600 z-20 ">
-                                    {streak.currentStreak}
-                                </p>
-                            </div>
-                            <p className="text-sm text-gray-600">Current Streak</p>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            <div className="relative">
-                                <img src={bestStreakk || "/placeholder.svg"} alt="Best Streak" className="w-12 h-12  hover:scale-110 transition-transform" />
-                                <p className="absolute left-20 bottom-5 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-blue-600 z-20">
-                                    {streak.highestStreak}
-                                </p>
-                            </div>
-                            <p className="text-sm text-gray-600">Best Streak</p>
-                        </div>
-                    </div>
-                </div> */}
-            
-            <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-16">
-                <div className="flex flex-col lg:flex-row gap-4 sm:gap-8 h-auto lg:h-[calc(100vh-220px)]">
-                    {/* Left Side - Todo Creation */}
-                    <div className="w-full lg:w-2/5">
-                        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                            <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
-                                    bg-gradient-to-r from-blue-500/5 to-indigo-500/5
-                                    font-sans tracking-wide via-violet-200 flex justify-center text-violet-900 select-none">
-                                {/* Create New Task */}
-                                Plan Your Day ✍️
-                            </h3>
-                            <div className="p-6">
-                                <form onSubmit={handleAddTodo} className="space-y-4">
-                                    <input
-                                        type="text"
-                                        value={newTodo}
-                                        onChange={(e) => setNewTodo(e.target.value)}
-                                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                        placeholder="What needs to be done?"
-                                    />
-
-                                    <MDEditor
-                                        value={newDesc}
-                                        onChange={setNewDesc}
-                                        preview="edit"
-                                        height={200}
-                                        className="mb-4 "
-                                        textareaProps={{
-                                            placeholder: "Add details for the task ... "
-                                        }}
-                                        commands={[
-                                            commands.bold,
-                                            commands.italic,
-                                            // commands.strikethrough,
-                                            // commands.hr,
-                                            commands.title,
-                                            commands.divider,
-                                            // commands.quote,
-                                            commands.code,
-                                            commands.codeBlock,
-                                            // commands.image,
-                                            commands.link,
-                                            commands.unorderedListCommand,
-                                            commands.orderedListCommand,
-                                            toggleCommand
-                                            // commands.checkedListCommand
-                                        ]}
-                                    />
-                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                        <MobileDateTimePicker
-                                            label="Due Date & Time"
-                                            value={selectedDate}
-                                            onChange={(newValue) => {
-                                                setSelectedDate(newValue);
-                                            }}
-                                            className="w-full"
-                                            format="DD/MM/YYYY hh:mm A"
-                                            slotProps={{
-                                                textField: {
-                                                    variant: "outlined",
-                                                    fullWidth: true,
-                                                    className: "bg-white"
-                                                }
-                                            }}
-                                            minDateTime={dayjs().startOf('day')}
-                                            ampm={true}
-                                        />
-                                    </LocalizationProvider>
-                                    <button
-                                        type="submit"
-                                        className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all transform hover:scale-[1.02] font-semibold shadow-md"
-                                    >
-                                        Add Task
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Side - Todo List */}
-                    <div className="w-full lg:w-3/5">
-                        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                            <h3 className="text-lg sm:text-xl font-semibold px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100
-                                    bg-gradient-to-r from-blue-500/5 to-indigo-500/5
-                                    font-sans tracking-wide flex justify-center via-violet-200 text-violet-900 select-none">
-                                {/* Your Tasks */}
-                                Tasks to get Done 🎯
-                            </h3>
-                            <div className="p-3 sm:p-6">
-                                <div className="h-[calc(100vh-375px)] overflow-y-auto pr-2
-                                        scrollbar-thin scrollbar-thumb-blue-500/50 hover:scrollbar-thumb-blue-500
-                                        scrollbar-track-gray-100 scrollbar-thumb-rounded-full
-                                        scrollbar-track-rounded-full">
-                                    {loading ? (
-                                        <div className="flex justify-center items-center h-48">
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3 sm:space-y-4">
-                                            {todos.length === 0 ? (
-                                                <div className="text-center py-6 sm:py-8 bg-white rounded-xl shadow-md border border-slate-200">
-                                                    <p className="text-gray-500 text-sm sm:text-base select-none">No tasks yet. Create one to get started!</p>
-                                                </div>
-                                            ) : (
-                                                <ul className="space-y-3 sm:space-y-4 mb-4">
-                                                    {todos
-                                                        .sort((a, b) => {
-                                                            // Push completed items to the end
-                                                            if (a.completed) return 1;
-                                                            if (b.completed) return -1;
-                                                            // Push items without due date to the end
-                                                            if (!a.dueDate) return 1;
-                                                            if (!b.dueDate) return -1;
-
-                                                            // Compare due dates
-                                                            return new Date(a.dueDate) - new Date(b.dueDate);
-                                                        }).map((todo) => (
-                                                            <li key={todo._id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
-                                                                {editingId === todo._id ? (
-                                                                    <div className="p-3 sm:p-4">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editTitle}
-                                                                            onChange={(e) => setEditTitle(e.target.value)}
-                                                                            className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                        />
-                                                                        {/* <textarea
-                                                                                value={editDesc}
-                                                                                onChange={(e) => setEditDesc(e.target.value)}
-                                                                                className="w-full px-4 py-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                                                                rows="2"
-                                                                            /> */}
-                                                                        <MDEditor
-                                                                            value={editDesc}
-                                                                            onChange={setEditDesc}
-                                                                            preview="edit"
-                                                                            height={200}
-                                                                            className="mb-4"
-                                                                            textareaProps={{
-                                                                                placeholder: "Edit details..."
-                                                                            }}
-                                                                            commands={[
-                                                                                commands.bold,
-                                                                                commands.italic,
-                                                                                // commands.strikethrough,
-                                                                                // commands.hr,
-                                                                                commands.title,
-                                                                                commands.divider,
-                                                                                // commands.quote,
-                                                                                commands.code,
-                                                                                commands.codeBlock,
-                                                                                // commands.image,
-                                                                                commands.link,
-                                                                                commands.unorderedListCommand,
-                                                                                commands.orderedListCommand,
-                                                                                // toggleCommand
-                                                                                // commands.checkedListCommand
-                                                                            ]}
-                                                                        />
-                                                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                                            <MobileDateTimePicker
-                                                                                label="Due Date & Time"
-                                                                                value={editDate}
-                                                                                onChange={(newValue) => {
-                                                                                    setEditDate(newValue);
-                                                                                }}
-                                                                                className="w-full"
-                                                                                format="DD/MM/YYYY hh:mm A"
-                                                                                slotProps={{
-                                                                                    textField: {
-                                                                                        variant: "outlined",
-                                                                                        fullWidth: true,
-                                                                                        className: "bg-white"
-                                                                                    }
-                                                                                }}
-                                                                                minDateTime={dayjs().startOf('day')}
-                                                                                ampm={true}
-                                                                            />
-                                                                        </LocalizationProvider>
-                                                                        <div className="flex gap-2 mt-3">
-                                                                            <button
-                                                                                onClick={() => handleUpdateTodo(todo._id)}
-                                                                                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                                                            >
-                                                                                Save
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => setEditingId(null)}
-                                                                                className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md font-medium flex items-center gap-1"
-                                                                            >
-                                                                                Cancel
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="p-3 sm:p-4 shadow-md rounded-lg hover:shadow-lg transition-shadow border border-slate-200">
-                                                                        {/* Mobile layout (<sm breakpoint) */}
-                                                                        <div className="flex flex-col gap-2">
-                                                                            {/* Title row */}
-                                                                            <div className="flex items-center gap-3">
-                                                                                <Checkbox color="success"
-                                                                                    checked={todo.completed}
-                                                                                    onChange={() => handleToggleTodo(todo._id, todo.completed)} />
-                                                                                <span className={`flex-1 text-base sm:text-lg ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                                                                    {todo.title}
-                                                                                </span>
-                                                                            </div>
-
-                                                                            {todo.description && (
-                                                                                <div className="ml-14 prose prose-sm max-w-none">
-                                                                                    <MDEditor.Markdown
-                                                                                        source={todo.description}
-                                                                                        className="text-gray-600 break-words whitespace-pre-wrap"
-                                                                                    />
-                                                                                </div>
-                                                                            )}
-
-                                                                            {/* Actions row */}
-                                                                            <div className="ml-14 flex flex-row items-center justify-between gap-2">
-                                                                                <div className={`text-xs sm:text-sm text-gray-800 border rounded-md p-1.5 sm:p-2 select-none ${todo.completed ? 'bg-gradient-to-r from-green-100 to-green-300' : 'bg-gradient-to-r from-orange-100 to-red-200'
-                                                                                    }`}>
-                                                                                    {(todo.dueDate && (!todo.completed)) ?
-                                                                                        (new Date(todo.dueDate).getTime() > new Date().getTime()
-                                                                                            ? <span
-                                                                                                className='text-gray-600 font-medium'>Due:</span> : <span
-                                                                                                    className='text-gray-600 font-medium'>Overdue:</span>) : <span
-                                                                                                        className='text-gray-600 font-medium'>Completed</span>} {(todo.dueDate && (!todo.completed)) ? new Date(todo.dueDate).toLocaleString('en-US', {
-                                                                                                            year: 'numeric',
-                                                                                                            month: 'short',
-                                                                                                            day: 'numeric',
-                                                                                                            hour: '2-digit',
-                                                                                                            minute: '2-digit'
-                                                                                                        }) : ''}
-                                                                                </div>
-                                                                                <div className="flex gap-2">
-                                                                                    <button
-                                                                                        onClick={() => handleEdit(todo)}
-                                                                                        className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md"
-                                                                                    >
-                                                                                        <Pencil size={20} />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={() => handleDeleteTodo(todo._id)}
-                                                                                        className="p-2 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-full hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-                                                                                    >
-                                                                                        <Trash size={20} />
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </li>
-                                                        ))}
-                                                </ul>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "flex items-center gap-2",
+                                                isCollapsed
+                                                    ? "hover:bg-gray-800"
+                                                    : "hover:bg-primary/10 hover:text-primary "
                                             )}
-                                        </div>
-                                    )}
-                                </div>
+                                        >
+                                            Filter
+                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                        <DropdownMenuItem
+                                            onClick={() => setSelectedFilter("today")}
+                                            className={selectedFilter === "today" ? "bg-primary/10" : ""}
+                                        >
+                                            Due Today
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => setSelectedFilter("tomorrow")}
+                                            className={selectedFilter === "tomorrow" ? "bg-primary/10" : ""}
+                                        >
+                                            Due Tomorrow
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            onClick={() => setSelectedFilter("all")}
+                                            className={selectedFilter === "all" ? "bg-primary/10" : ""}
+                                        >
+                                            All Tasks
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
+                            {getFilteredTodos().length > 0 ? (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.4 }}
+                                    className="space-y-3"
+                                >
+                                    {sortTodos(getFilteredTodos()).map(todo => (
+                                        <TodoSheet
+                                            key={todo._id}
+                                            todo={todo}
+                                            onEdit={handleEditTodo}
+                                            onDelete={handleDeleteTodo}
+                                            onToggleComplete={handleToggleTodo}
+                                        />
+                                    ))}
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.4 }}
+                                >
+                                    <div className="bg-card border-border rounded-xl p-8 text-center shadow-sm">
+                                        <div className="mb-4">
+                                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                                                <Calendar className="w-8 h-8 text-primary" />
+                                            </div>
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-foreground mb-2">No tasks yet</h3>
+                                        <p className="text-muted-foreground mb-6">Create your first task to get started on your productivity journey!</p>
+                                    </div>
+                                </motion.div>
+                            )}
                         </div>
                     </div>
-                </div>
-            </div>
-            <Toaster position="bottom-right" />
-        </div >
+                </main>
 
-            <footer className="fixed bottom-0 w-full py-2 sm:py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
-                <p className="text-center text-gray-700 text-xs sm:text-sm md:text-base font-serif italic tracking-wide px-2 select-none">
-                    <span className="font-semibold text-blue-600 select-none">Quote of The Day - </span>
-                    {quote}
-                </p>
-            </footer>
-        </>
+                {/* Update the Create Task Button positioning and width */}
+                <div className={cn(
+                    "fixed bottom-24 transition-all duration-300 ease-in-out",
+                    "w-[90%] md:w-[300px] lg:w-[400px]", // Increased width for larger screens
+                    "left-1/2 transform -translate-x-1/2", // Center on mobile
+                    "md:left-[calc(50%+125px)]", // Original desktop positioning
+                )}>
+                    <motion.button
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full flex items-center justify-between px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors shadow-lg"
+                    >
+                        <span className="flex items-center gap-3">
+                            <Plus size={20} />
+                            <span className="text-base">Create new task</span>
+                        </span>
+                        <ArrowBigRightDashIcon size={20} />
+                    </motion.button>
+                </div>
+
+                {/* Update the footer for mobile */}
+                <footer className={cn(
+                    "fixed bottom-0 left-0 right-0 py-2 md:py-4 bg-card/50 backdrop-blur-sm border-t border-border transition-all duration-300",
+                    "md:left-60" // Only apply sidebar offset on desktop
+                )}>
+                    <p className="text-center text-muted-foreground text-xs md:text-sm font-serif italic tracking-wide px-4">
+                        <span className="font-semibold text-primary">Quote of The Day - </span>
+                        {quote}
+                    </p>
+                </footer>
+            </div>
+
+            {/* Create Task Modal */}
+            <CreateTaskModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                newTodo={newTodo}
+                setNewTodo={setNewTodo}
+                newDesc={newDesc}
+                setNewDesc={setNewDesc}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                handleAddTodo={handleAddTodo}
+                toggleCommand={toggleCommand}
+                commands={commands}
+                isEditing={isEditing}
+                isCollapsed={isCollapsed}
+            />
+        </div>
     );
 };
 

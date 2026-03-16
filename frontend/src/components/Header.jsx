@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from "react-router-dom";
 import { GithubIcon } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import currStreak from '../assets/currStreak.svg';
 import bestStreak from '../assets/bestStreak.svg';
 import bestStreakk from '../assets/bestStreakk.svg';
@@ -13,15 +13,13 @@ function Header({ setIsAuthenticated, currentStreakData, bestStreakData }) {
         localStorage.removeItem('todoToken');
         setIsAuthenticated(false);
         navigate('/');
-        toast.success("Successfully logged out !", {
-            duration: 4000
-        })
-
+        toast.success('Logged out', {
+            duration: 2000
+        });
     };
     return (
         <header className='bg-gradient-to-r from-blue-600 to-blue-900 text-white p-2 shadow-md'>
             <div className='container mx-auto flex justify-between items-center'>
-                <Toaster position="bottom-right" />
                 {/* <h1 className='text-2xl font-bold text-blue-50'>
                     <a href="/">GoalArc</a>
                 </h1> */}

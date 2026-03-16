@@ -1,6 +1,6 @@
 import React, { useRef } from "react"
 import { useNavigate } from "react-router-dom";
-import bannerImage from '../assets/bannerImage.png'
+import landingImg from '../assets/landingImg.png'
 import { Rocket } from "lucide-react";
 
 import {
@@ -11,7 +11,13 @@ import {
     FileText,
     Trash2,
     PlayCircle,
-    WandSparkles
+    WandSparkles,
+    Timer,
+    Flame,
+    Trophy,
+    BarChart,
+    Users,
+    BrainCircuit
 } from "lucide-react"
 
 const Button = ({ children, primary, onClick }) => (
@@ -27,12 +33,12 @@ const Button = ({ children, primary, onClick }) => (
 )
 
 const FeatureCard = ({ Icon, title, description }) => (
-    <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer">
-        <div className="text-5xl mb-4 text-blue-600">
-            <Icon size={48} />
+    <div className="flex flex-col items-center p-4 sm:p-6 md:p-8 bg-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer">
+        <div className="text-4xl sm:text-5xl mb-3 sm:mb-4 text-blue-600">
+            <Icon size={40} className="sm:w-12 sm:h-12" />
         </div>
-        <h3 className="text-2xl font-bold mb-2 text-blue-900">{title}</h3>
-        <p className="text-center text-gray-600">{description}</p>
+        <h3 className="text-xl sm:text-2xl font-bold mb-2 text-blue-900 text-center">{title}</h3>
+        <p className="text-center text-sm sm:text-base text-gray-600">{description}</p>
     </div>
 )
 
@@ -46,19 +52,23 @@ const LandingPage = () => {
 
     return (
         <div className="font-sans text-gray-900 leading-normal">
+            <style jsx global>{`
+                /* Hide scrollbar for Chrome, Safari and Opera */
+                ::-webkit-scrollbar {
+                    display: none;
+                }
+
+                /* Hide scrollbar for IE, Edge and Firefox */
+                * {
+                    -ms-overflow-style: none;  /* IE and Edge */
+                    scrollbar-width: none;  /* Firefox */
+                }
+            `}</style>
             <main>
                 <section className="relative bg-gradient-to-br from-blue-600 to-blue-900 text-white py-32 px-4 md:px-8 overflow-hidden ">
                     <div className="absolute inset-0 bg-blue-900 opacity-20 z-0 "></div>
                     <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
                         <div className="text-left space-y-8">
-                            {/* <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
-                                <span className="block">GoalArc</span>
-                                <span className="block text-blue-300 ">Bridge Your Tasks to Triumph
-                                    <span>
-                                        <Rocket size={48}/>
-                                    </span>
-                                </span>
-                            </h1> */}
                             <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
                                 <span className="block">GoalArc</span>
                                 <span className="block text-blue-300">
@@ -69,8 +79,9 @@ const LandingPage = () => {
                                 </span>
                             </h1>
                             <p className="text-xl md:text-2xl font-light max-w-xl text-indigo-100">
-                                Stay organized, boost productivity, and never miss a deadline with GoalArc's innovative task management
-                                system.
+                                {/* Stay organized, boost productivity, and never miss a deadline with GoalArc's innovative task management
+                                system powered by AI and gamification. */}
+                                Stay organized, boost productivity, and hit every deadline with GoalArc’s AI-powered Task Management System.
                             </p>
                             <div className="flex space-x-4">
                                 <Button primary onClick={() => navigate("/auth")}>
@@ -79,23 +90,13 @@ const LandingPage = () => {
                                 <Button onClick={scrollToFeatures}>Learn More</Button>
                             </div>
                         </div>
-                        <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                        <div className="w-full h-auto relative">
                             <img
-                                src={bannerImage}
+                                src={landingImg}
                                 alt="GoalArc Demo Video"
-                                className="absolute inset-0 w-full h-full object-fill"
+                                className="w-full h-full object-cover"
+                                loading="lazy"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <button
-                                    className="relative bg-white bg-opacity-75 rounded-full p-4 text-blue-600 hover:bg-opacity-100 transition-all duration-300 border hover:bg-blue-100 hover:border-blue-200 group"
-                                    aria-label="Play demo video"
-                                >
-                                    <span className="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap">
-                                        Video will be uploaded Soon !
-                                    </span>
-                                    <PlayCircle size={48} />
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-blue-900 to-transparent"></div>
@@ -103,44 +104,71 @@ const LandingPage = () => {
 
                 <section className="py-24 px-8 bg-blue-50" id="features" ref={featuresRef}>
                     <h2 className="text-4xl font-bold text-center mb-16 text-blue-900">Key Features</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <FeatureCard
-                            Icon={Lock}
-                            title="Secure Authentication"
-                            description="Protect your personal Tasks with our robust user management system."
-                        />
-                        <FeatureCard
-                            Icon={WandSparkles}
-                            title="Smart Task Creation"
-                            description="Easily add new tasks and let AI generate detailed descriptions for you."
-                        />
-                        <FeatureCard
-                            Icon={Calendar}
-                            title="Organized Tasks"
-                            description="Automatically organize your tasks based on deadlines for better time management."
-                        />
-                        <FeatureCard
-                            Icon={Edit}
-                            title="Flexible Updates"
-                            description="Modify your tasks anytime to keep your list current and relevant."
-                        />
-                        <FeatureCard
-                            Icon={FileText}
-                            title="Markdown Support"
-                            description="Format your task descriptions using Markdown for enhanced readability."
-                        />
-                        <FeatureCard
-                            Icon={Trash2}
-                            title="Easy Deletions"
-                            description="Remove completed or unnecessary tasks to keep your list clutter-free."
-                        />
+                    <div className="flex flex-wrap justify-center gap-8">
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={Lock}
+                                title="Secure Authentication"
+                                description="Protect your personal tasks with our robust user management system and profile customization."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={BrainCircuit}
+                                title="AI-Powered Tasks"
+                                description="Create detailed task descriptions with our AI assistant that helps you define your goals clearly."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={FileText}
+                                title="Markdown Support"
+                                description="Format your task descriptions using Markdown for enhanced readability and organization."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={Calendar}
+                                title="Calendar Integration"
+                                description="Visualize your tasks on a calendar to better plan your days, weeks, and months ahead."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={Timer}
+                                title="Pomodoro Timer"
+                                description="Boost your productivity with customizable Pomodoro sessions linked directly to your tasks."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={Flame}
+                                title="Streak Tracking"
+                                description="Build consistent habits by tracking your daily task completion streaks and setting new records."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={Trophy}
+                                title="Leaderboard"
+                                description="Compete with other users on the productivity leaderboard to stay motivated and engaged."
+                            />
+                        </div>
+                        <div className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] max-w-md">
+                            <FeatureCard
+                                Icon={BarChart}
+                                title="Productivity Analytics"
+                                description="Track your productivity metrics and gain insights into your work patterns and efficiency."
+                            />
+                        </div>
+                        
                     </div>
                 </section>
 
                 <section className="bg-gradient-to-br from-blue-100 to-blue-300 py-24 px-8 text-center">
                     <h2 className="text-4xl font-bold mb-6 text-blue-900">Elevate Your Productivity with GoalArc</h2>
                     <p className="text-xl max-w-2xl mx-auto mb-10 text-blue-800">
-                        Join thousands of users who have transformed their task management. Sign up now and start your journey to
+                        Join thousands of users who have transformed their task management with our AI-powered platform. Sign up now and start your journey to
                         triumph.
                     </p>
                     <Button primary onClick={() => navigate("/auth")}>
@@ -149,16 +177,16 @@ const LandingPage = () => {
                 </section>
             </main>
 
-            <footer className="bg-blue-900 text-white py-8 px-8 text-center">
-                <p className="mb-4">© 2024 GoalArc. All rights reserved.</p>
-                <div>
+            <footer className="bg-blue-900 text-white py-2 px-8 text-center">
+                <p className="mb-4">© 2025 GoalArc. All rights reserved.</p>
+                {/* <div>
                     <a href="#" className="text-blue-200 hover:underline mr-6">
                         Terms of Service
                     </a>
                     <a href="#" className="text-blue-200 hover:underline">
                         Privacy Policy
                     </a>
-                </div>
+                </div> */}
             </footer>
         </div>
     )

@@ -18,6 +18,14 @@ const todoSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    pomodoroSessions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PomodoroSession'
+    }],
+    totalPomodoroSessions: {
+        type: Number,
+        default: 0
     }
 })
 
