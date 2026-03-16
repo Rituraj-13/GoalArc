@@ -195,7 +195,7 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
         const sessions = await fetchTaskCompletedSessions(todo._id);
 
         // Fetch total focus time
-        const response = await axios.get('http://localhost:3000/pomodoro/stats', {
+        const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/stats', {
           headers: { 'Authorization': `Bearer ${token}` },
           params: { todoId: todo._id }
         });
@@ -226,11 +226,11 @@ export function TodoSheet({ todo, onEdit, onDelete, onToggleComplete }) {
     const remainingMinutes = minutes % 60;
 
     if (hours > 0) {
-        return `${hours}h ${remainingMinutes}m`;
+      return `${hours}h ${remainingMinutes}m`;
     } else {
-        return `${remainingMinutes}m`;
+      return `${remainingMinutes}m`;
     }
-};
+  };
 
   // Handle date picker dialog
   const handleDatePickerClose = (open) => {

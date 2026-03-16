@@ -42,7 +42,7 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
     const fetchTodos = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("http://localhost:3000/todos", {
+            const response = await axios.get("https://goalarcservices.riturajdey.com/todos", {
                 headers: { Authorization: `Bearer ${token}` },
             })
             setTodos(response.data.filter((todo) => !todo.completed))
@@ -54,7 +54,7 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
     const fetchStats = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("http://localhost:3000/pomodoro/stats", {
+            const response = await axios.get("https://goalarcservices.riturajdey.com/pomodoro/stats", {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
                     todoId: selectedTodo?._id || null,
@@ -73,14 +73,14 @@ const PomodoroPage = ({ setIsAuthenticated }) => {
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const remainingMinutes = minutes % 60;
-    
+
         if (hours > 0) {
             return `${hours}h ${remainingMinutes}m`;
         } else {
             return `${remainingMinutes}m`;
         }
     };
-    
+
 
     const calculateProductivityScore = () => {
         const totalTime = stats.work.totalDuration + stats.shortBreak.totalDuration
