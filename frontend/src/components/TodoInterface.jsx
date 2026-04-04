@@ -253,28 +253,26 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
     const getQuote = async () => {
         try {
-            const quoteOfTheDay = await fetch("/api/random")
-                .then(response => response.json())
+            const token = localStorage.getItem('todoToken');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/quotes/random`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-            const refined_Quote = quoteOfTheDay[0].q;
+            const refinedQuote = response?.data?.quote;
 
-            if (refined_Quote.startsWith("Too")) {
-                // Get random fallback quote when API limit is reached
+            if (!refinedQuote || refinedQuote.trim() === "") {
                 const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-                setQuote(fallbackQuotes[randomIndex]);
-                // Optionally show a toast/notification about API limit
-                console.log("API rate limit reached, showing fallback quote");
                 return fallbackQuotes[randomIndex];
-            } else if (!refined_Quote || refined_Quote.trim() === "") {
-                // Handle empty or null responses
-                setQuote("Stay productive!");
-                return "Stay productive!";
-            } else {
-                return refined_Quote;
             }
+
+            return refinedQuote;
 
         } catch (error) {
             console.error('Error fetching quote:', error);
+            const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+            return fallbackQuotes[randomIndex];
         }
     }
 
