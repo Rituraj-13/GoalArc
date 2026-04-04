@@ -22,7 +22,7 @@ const PomodoroSettings = ({ onClose }) => {
     try {
       const token = localStorage.getItem('todoToken');
       const response = await axios.put(
-        'http://localhost:3000/pomodoro/settings',
+        'https://goalarcservices.riturajdey.com/pomodoro/settings',
         tempSettings,
         {
           headers: { 'Authorization': `Bearer ${token}` }

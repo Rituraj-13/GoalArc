@@ -24,8 +24,8 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                 if (!token) return
 
                 const [leaderboardResponse, rankResponse] = await Promise.all([
-                    axios.get("http://localhost:3000/api/leaderboard"),
-                    axios.get("http://localhost:3000/api/my-rank", {
+                    axios.get("https://goalarcservices.riturajdey.com/api/leaderboard"),
+                    axios.get("https://goalarcservices.riturajdey.com/api/my-rank", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ])

@@ -17,7 +17,7 @@ const StreaksPage = ({ setIsAuthenticated }) => {
     const fetchStreakData = async () => {
       try {
         const token = localStorage.getItem('todoToken');
-        const response = await axios.get('http://localhost:3000/todos/streak', {
+        const response = await axios.get('https://goalarcservices.riturajdey.com/todos/streak', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -33,7 +33,7 @@
 //         }
 
 //         const endpoint = isSignUp ? "signup" : "signin";
-//         const backendUrl = `http://localhost:3000/${endpoint}`;
+//         const backendUrl = `https://goalarcservices.riturajdey.com/${endpoint}`;
 //         const loadingToastId = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
 
 //         try {
@@ -264,7 +264,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
         }
 
         const endpoint = isSignUp ? "signup" : "signin"
-        const backendUrl = `http://localhost:3000/${endpoint}`
+        const backendUrl = `https://goalarcservices.riturajdey.com/${endpoint}`
         setIsLoading(true)
         const loadingToastId = toast.loading(isSignUp ? "Creating account..." : "Signing in...")
 
