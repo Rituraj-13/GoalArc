@@ -48,7 +48,8 @@ export default function App({ children }) {
           <Toaster position="bottom-right" />
           <Routes>
             <Route path="/" element={<LandingPage />} />
-
+            
+            {/* Leaderboard route */}
             <Route path="/leaderboard"
               element={
                 isAuthenticated ?
