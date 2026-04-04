@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: 'projectsbyrituraj@gmail.com',
+        user: process.env.SENDER_EMAIL,
         pass: process.env.EMAIL_APP_PASSWORD
     }
 });
@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 export const sendVerificationEmail = async (email, otp, firstName, lastName) => {
     try {
         const mailOptions = {
-            from: '"GoalArc" <info@riturajdey.com>',
+            from: '"GoalArc" <info@riturajdey.dev>',
             to: email,
             subject: "Verify your GoalArc account",
             html: `

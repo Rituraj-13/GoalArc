@@ -60,7 +60,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
             try {
                 setLoading(true);
                 const token = localStorage.getItem('todoToken');
-                const response = await axios.get('https://goalarcservices.riturajdey.com/todos/streak', {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/todos/streak`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -94,7 +94,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const fetchTodos = async () => {
         try {
             const token = localStorage.getItem('todoToken');
-            const response = await axios.get('https://goalarcservices.riturajdey.com/todos', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/todos`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -116,7 +116,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
         try {
             const token = localStorage.getItem('todoToken');
-            const response = await axios.post('https://goalarcservices.riturajdey.com/todos',
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/todos`,
                 {
                     title: newTodo,
                     description: newDesc,
@@ -147,7 +147,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
             const token = localStorage.getItem('todoToken');
             const response = await axios.put(
-                `https://goalarcservices.riturajdey.com/todos/${todoId}`,
+                `${import.meta.env.VITE_API_URL}/todos/${todoId}`,
                 {
                     completed: !todoToUpdate.completed // Toggle the completed status
                 },
@@ -180,7 +180,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const handleDeleteTodo = async (id) => {
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.delete(`https://goalarcservices.riturajdey.com/todos/${id}`, {
+            await axios.delete(`${import.meta.env.VITE_API_URL}/todos/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -194,7 +194,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
 
     const handleEditTodo = async (updatedTodo) => {
         try {
-            const response = await fetch(`https://goalarcservices.riturajdey.com/todos/${updatedTodo._id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/todos/${updatedTodo._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ const TodoInterface = ({ setIsAuthenticated }) => {
     const handleUpdateTodo = async (id) => {
         try {
             const token = localStorage.getItem('todoToken');
-            await axios.put(`https://goalarcservices.riturajdey.com/todos/${id}`,
+            await axios.put(`${import.meta.env.VITE_API_URL}/todos/${id}`,
                 {
                     title: editTitle,
                     description: editDesc,

@@ -35,7 +35,7 @@ const OTPVerification = ({ email, onVerificationComplete, isProfileUpdate = fals
         setLoading(true);
         try {
             // First verify the OTP
-            const verifyResponse = await axios.post('https://goalarcservices.riturajdey.com/verify-otp', {
+            const verifyResponse = await axios.post(`${import.meta.env.VITE_API_URL}/verify-otp`, {
                 email,
                 otp
             });
@@ -47,7 +47,7 @@ const OTPVerification = ({ email, onVerificationComplete, isProfileUpdate = fals
                 } else {
                     // Existing login flow
                     const password = localStorage.getItem('tempSignupPassword');
-                    const loginResponse = await axios.post('https://goalarcservices.riturajdey.com/signin', {
+                    const loginResponse = await axios.post(`${import.meta.env.VITE_API_URL}/signin`, {
                         name: email,
                         pw: password
                     });
@@ -70,7 +70,7 @@ const OTPVerification = ({ email, onVerificationComplete, isProfileUpdate = fals
 
     const resendOTP = async () => {
         try {
-            await axios.post('https://goalarcservices.riturajdey.com/resend-otp', { email });
+            await axios.post(`${import.meta.env.VITE_API_URL}/resend-otp`, { email });
             toast.success('OTP sent!', { duration: 2000 });
             startTimer();
         } catch (error) {

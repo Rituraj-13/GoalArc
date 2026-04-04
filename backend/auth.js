@@ -22,13 +22,17 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+    origin: ['https://goalarc.riturajdey.com', 'http://localhost:5173', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true
+}))
 app.use(streakCheck);
 app.use('/todos', router);
 app.use('/pomodoro', pomodoroRouter);
 app.use('/user', profilePictureRoutes);
 app.use('/api', leaderBoardRouter);
-const port = 3000;
+const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET
 const DB_URL = process.env.MONGO_URL
 mongoose.connect(DB_URL);
