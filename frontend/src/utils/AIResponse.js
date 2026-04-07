@@ -1,6 +1,6 @@
 const AIResponse = async (title) => {
     try {
-        const response = await fetch('https://goalarcservices.riturajdey.com/todos/generate-description', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/todos/generate-description`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

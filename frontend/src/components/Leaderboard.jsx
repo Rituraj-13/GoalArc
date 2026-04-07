@@ -24,8 +24,8 @@ const Leaderboard = ({ setIsAuthenticated }) => {
                 if (!token) return
 
                 const [leaderboardResponse, rankResponse] = await Promise.all([
-                    axios.get("https://goalarcservices.riturajdey.com/api/leaderboard"),
-                    axios.get("https://goalarcservices.riturajdey.com/api/my-rank", {
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/leaderboard`),
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/my-rank`, {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ])
@@ -842,4 +842,5 @@ const Leaderboard = ({ setIsAuthenticated }) => {
 }
 
 export default Leaderboard
+
 

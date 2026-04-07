@@ -27,7 +27,7 @@ const CalendarPage = ({ setIsAuthenticated }) => {
     const fetchTodos = async () => {
         try {
             const token = localStorage.getItem('todoToken');
-            const response = await axios.get('https://goalarcservices.riturajdey.com/todos', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/todos`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

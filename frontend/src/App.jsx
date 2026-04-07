@@ -26,7 +26,7 @@ export default function App({ children }) {
     const token = localStorage.getItem('todoToken');
     if (token) {
       // Validate token by making a request to protected endpoint
-      axios.get('https://goalarcservices.riturajdey.com/todos', {
+      axios.get(`${import.meta.env.VITE_API_URL}/todos`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -48,7 +48,8 @@ export default function App({ children }) {
           <Toaster position="bottom-right" />
           <Routes>
             <Route path="/" element={<LandingPage />} />
-
+            
+            {/* Leaderboard route */}
             <Route path="/leaderboard"
               element={
                 isAuthenticated ?
