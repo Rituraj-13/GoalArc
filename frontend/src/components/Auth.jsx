@@ -33,7 +33,7 @@
 //         }
 
 //         const endpoint = isSignUp ? "signup" : "signin";
-//         const backendUrl = `https://goalarcservices.riturajdey.com/${endpoint}`;
+//         const backendUrl = `${import.meta.env.VITE_API_URL}/${endpoint}`;
 //         const loadingToastId = toast.loading(isSignUp ? 'Creating account...' : 'Signing in...');
 
 //         try {
@@ -264,7 +264,7 @@ const AuthForm = ({ setIsAuthenticated }) => {
         }
 
         const endpoint = isSignUp ? "signup" : "signin"
-        const backendUrl = `https://goalarcservices.riturajdey.com/${endpoint}`
+        const backendUrl = `${import.meta.env.VITE_API_URL}/${endpoint}`
         setIsLoading(true)
         const loadingToastId = toast.loading(isSignUp ? "Creating account..." : "Signing in...")
 
@@ -514,4 +514,5 @@ const AuthForm = ({ setIsAuthenticated }) => {
 }
 
 export default AuthForm
+
 

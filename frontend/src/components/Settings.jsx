@@ -25,7 +25,7 @@ const Settings = ({ setIsAuthenticated }) => {
     const fetchUserData = async () => {
         try {
             const token = localStorage.getItem("todoToken")
-            const response = await axios.get("https://goalarcservices.riturajdey.com/user/profile", {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/user/profile`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -82,7 +82,7 @@ const Settings = ({ setIsAuthenticated }) => {
 
                 try {
                     const uploadResponse = await axios.post(
-                        'https://goalarcservices.riturajdey.com/user/upload',
+                        `${import.meta.env.VITE_API_URL}/user/upload`,
                         formData,
                         {
                             headers: {
@@ -108,7 +108,7 @@ const Settings = ({ setIsAuthenticated }) => {
             // If email is being changed, send OTP first
             if (newEmail && newEmail !== email) {
                 try {
-                    await axios.post("https://goalarcservices.riturajdey.com/resend-otp", {
+                    await axios.post(`${import.meta.env.VITE_API_URL}/resend-otp`, {
                         email: newEmail,
                     })
 
@@ -123,7 +123,7 @@ const Settings = ({ setIsAuthenticated }) => {
             }
 
             // If no email change, just update other fields
-            const response = await axios.put("https://goalarcservices.riturajdey.com/user/profile", updateData, {
+            const response = await axios.put(`${import.meta.env.VITE_API_URL}/user/profile`, updateData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -148,7 +148,7 @@ const Settings = ({ setIsAuthenticated }) => {
         try {
             const token = localStorage.getItem("todoToken")
             await axios.put(
-                "https://goalarcservices.riturajdey.com/user/profile",
+                `${import.meta.env.VITE_API_URL}/user/profile`,
                 {
                     firstName,
                     lastName,
@@ -382,3 +382,4 @@ const Settings = ({ setIsAuthenticated }) => {
 }
 
 export default Settings;
+

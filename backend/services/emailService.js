@@ -1,21 +1,27 @@
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'projectsbyrituraj@gmail.com',
-        pass: process.env.EMAIL_APP_PASSWORD
+let resendClient;
+
+const getResendClient = () => {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error('RESEND_API_KEY is not configured');
     }
-});
 
-export const sendVerificationEmail = async (email, otp, firstName, lastName) => {
+    if (!resendClient) {
+        resendClient = new Resend(process.env.RESEND_API_KEY);
+    }
+
+    return resendClient;
+};
+
+export const sendVerificationEmail = async (email, otp, firstName = '', lastName = '') => {
     try {
+        const recipientName = [firstName, lastName].filter(Boolean).join(' ').trim();
+        const from = process.env.RESEND_FROM_EMAIL || 'GoalArc <onboarding@resend.dev>';
+
         const mailOptions = {
-            from: '"GoalArc" <info@riturajdey.com>',
+            from,
             to: email,
             subject: "Verify your GoalArc account",
             html: `
@@ -90,7 +96,7 @@ export const sendVerificationEmail = async (email, otp, firstName, lastName) => 
                             <h1>Email Verification</h1>
                         </div>
                         <div class="content">
-                            <p>Hello, ${firstName} ${lastName}</p>
+                            <p>Hello${recipientName ? `, ${recipientName}` : ''}</p>
                             <p>Thank you for signing up with <strong>GoalArc</strong>! <br> Please use the One-Time Password (OTP) below to complete your verification process:</p>
                             
                             <div class="otp">${otp}</div>
@@ -110,7 +116,7 @@ export const sendVerificationEmail = async (email, otp, firstName, lastName) => 
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        await getResendClient().emails.send(mailOptions);
         return true;
     } catch (error) {
         console.error('Email sending failed:', error);

@@ -31,7 +31,7 @@ export const PomodoroProvider = ({ children }) => {
 
     try {
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/pomodoro/sessions/count`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           todoId: todoId,
@@ -49,7 +49,7 @@ export const PomodoroProvider = ({ children }) => {
   const fetchCompletedSessions = async () => {
     try {
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/sessions/count', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/pomodoro/sessions/count`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: {
           type: 'work',
@@ -66,7 +66,7 @@ export const PomodoroProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('todoToken');
-      const response = await axios.get('https://goalarcservices.riturajdey.com/pomodoro/settings', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/pomodoro/settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSettings(response.data);
@@ -158,7 +158,7 @@ export const PomodoroProvider = ({ children }) => {
         endTime: new Date()
       };
 
-      await axios.post('https://goalarcservices.riturajdey.com/pomodoro/sessions', sessionData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/pomodoro/sessions`, sessionData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

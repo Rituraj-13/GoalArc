@@ -36,7 +36,7 @@ GoalArc is a full-stack productivity application that combines intelligent task 
 - Profile pictures and user scores.
 
 ### 👤 Authentication & Profile
-- User registration with **OTP email verification** (MailerSend / Nodemailer).
+- User registration with **OTP email verification** (Resend).
 - JWT-based authentication.
 - Profile management (name, email, avatar).
 - Profile picture upload to **AWS S3** with presigned URL generation.
@@ -62,7 +62,7 @@ GoalArc is a full-stack productivity application that combines intelligent task 
 | **Backend** | Node.js, Express.js |
 | **Database** | MongoDB (Mongoose) |
 | **Auth** | JWT, bcrypt |
-| **Email** | MailerSend, Nodemailer |
+| **Email** | Resend |
 | **Storage** | AWS S3 (multer-s3), Presigned URLs |
 | **Scheduler** | node-cron |
 | **Validation** | Zod |
@@ -122,7 +122,7 @@ ToDo_AI-App/
 - MongoDB instance (local or Atlas)
 - AWS S3 bucket
 - Google Gemini API key
-- MailerSend API key (for email verification)
+- Resend API key (for email verification)
 
 ### 1. Clone the Repository
 
@@ -148,7 +148,8 @@ AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key
 AWS_REGION=your_aws_region
 S3_BUCKET_NAME=your_s3_bucket_name
-MAILERSEND_API_KEY=your_mailersend_api_key
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=GoalArc <onboarding@resend.dev>
 ```
 
 Start the backend server:
